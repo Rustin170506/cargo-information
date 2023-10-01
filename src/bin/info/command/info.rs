@@ -3,7 +3,7 @@ use cargo::util::command_prelude::*;
 pub fn cli() -> Command {
     Command::new("info")
         .about("Display info about a package in the registry")
-        .arg(Arg::new("query").num_args(0..))
+        .arg(Arg::new("pkgid").required(true).value_name("SPEC"))
         .arg_index()
         .arg(opt("registry", "Registry to use").value_name("REGISTRY"))
         .arg_quiet()
@@ -12,6 +12,12 @@ pub fn cli() -> Command {
         ))
 }
 
-pub fn exec(args: &ArgMatches) -> CliResult {
-    Err(anyhow::format_err!("info: {:?}", args).into())
+pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
+    let _registry = args.registry(config)?;
+    let _index = args.index()?;
+    let pkgid = args.get_one::<String>("pkgid").map(String::as_str).unwrap();
+
+    println!("pkgid: {}", pkgid);
+
+    Ok(())
 }
