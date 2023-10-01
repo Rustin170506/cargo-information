@@ -8,7 +8,7 @@ pub fn cli() -> Command {
         .arg(opt("registry", "Registry to use").value_name("REGISTRY"))
         .arg_quiet()
         .after_help(color_print::cstr!(
-            "Run `<cyan,bold>cargo help search</>` for more detailed information.\n"
+            "Run `<cyan,bold>cargo help info</>` for more detailed information.\n"
         ))
 }
 
