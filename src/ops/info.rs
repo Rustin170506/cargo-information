@@ -1,10 +1,11 @@
 use std::collections::HashSet;
 
+use crate::ops::style::{CYAN, GREEN, NOP, YELLOW};
 use anstyle::{AnsiColor, Effects};
+use anyhow::__private::kind::AdhocKind;
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, Package, SourceId};
+use cargo::core::{Dependency, Package, SourceId, Summary, Target};
 use cargo::sources::source::QueryKind;
-use cargo::util::style::{GOOD, NOP, WARN};
 use cargo::{CargoResult, Config};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
@@ -39,12 +40,12 @@ pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
 
     let package = package.get_one(package_id)?;
 
-    pretty_view(&package, config)?;
+    pretty_view(&package, &summaries, config)?;
 
     Ok(())
 }
 
-fn pretty_view(krate: &Package, config: &Config) -> CargoResult<()> {
+fn pretty_view(krate: &Package, summaries: &[Summary], config: &Config) -> CargoResult<()> {
     let summary = krate.manifest().summary();
     let package_id = summary.package_id();
     let manmeta = krate.manifest().metadata();
@@ -56,27 +57,75 @@ fn pretty_view(krate: &Package, config: &Config) -> CargoResult<()> {
             name = package_id.name(),
             version = package_id.version()
         ),
-        &GOOD,
+        &GREEN,
     )?;
     config.shell().write_stdout(" | ", &NOP)?;
     match manmeta.license {
         Some(ref license) => {
             config
                 .shell()
-                .write_stdout(format!("{license}", license = license), &GOOD)?;
+                .write_stdout(format!("{license}", license = license), &GREEN)?;
         }
         None => {
-            config.shell().write_stdout("No license", &WARN)?;
+            config.shell().write_stdout("No license", &YELLOW)?;
         }
     }
     config.shell().write_stdout(" | ", &NOP)?;
     config.shell().write_stdout("deps: ", &NOP)?;
     let deps = summary.dependencies().len();
-    config
-        .shell()
-        .write_stdout(deps, &AnsiColor::Cyan.on_default().effects(Effects::BOLD))?;
+    config.shell().write_stdout(deps, &CYAN)?;
+
+    config.shell().write_stdout(" | ", &NOP)?;
+    config.shell().write_stdout("versions: ", &NOP)?;
+    config.shell().write_stdout(summaries.len(), &YELLOW)?;
 
     config.shell().write_stdout("\n", &NOP)?;
+
+    if let Some(ref description) = manmeta.description {
+        config.shell().write_stdout(description.trim_end(), &NOP)?;
+        config.shell().write_stdout("\n", &NOP)?;
+    }
+
+    if let Some(ref homepage) = manmeta.homepage {
+        config.shell().write_stdout("Homepage: ", &NOP)?;
+        config.shell().write_stdout(homepage, &CYAN)?;
+        config.shell().write_stdout("\n", &NOP)?;
+    }
+
+    if let Some(ref repository) = manmeta.repository {
+        config.shell().write_stdout("Repository: ", &NOP)?;
+        config.shell().write_stdout(repository, &CYAN)?;
+        config.shell().write_stdout("\n", &NOP)?;
+    }
+
+    if let Some(ref documentation) = manmeta.documentation {
+        config.shell().write_stdout("Documentation: ", &NOP)?;
+        config.shell().write_stdout(documentation, &CYAN)?;
+        config.shell().write_stdout("\n", &NOP)?;
+    }
+
+    config.shell().write_stdout("\n", &NOP)?;
+
+    if let Some(library) = krate.library() {
+        config.shell().write_stdout("lib: ", &NOP)?;
+        config.shell().write_stdout(library.name(), &CYAN)?;
+        config.shell().write_stdout("\n", &NOP)?;
+    }
+
+    let binaries = krate
+        .targets()
+        .iter()
+        .filter(|t| t.is_bin())
+        .collect::<Vec<&Target>>();
+
+    if !binaries.is_empty() {
+        config.shell().write_stdout("bin: ", &NOP)?;
+        for binary in binaries {
+            config.shell().write_stdout(binary.name(), &CYAN)?;
+            config.shell().write_stdout(" ", &NOP)?;
+        }
+        config.shell().write_stdout("\n", &NOP)?;
+    }
 
     Ok(())
 }
