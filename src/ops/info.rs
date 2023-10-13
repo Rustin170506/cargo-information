@@ -1,8 +1,6 @@
 use std::collections::HashSet;
 
 use crate::ops::style::{CYAN, GREEN, NOP, YELLOW};
-use anstyle::{AnsiColor, Effects};
-use anyhow::__private::kind::AdhocKind;
 use cargo::core::registry::PackageRegistry;
 use cargo::core::{Dependency, Package, SourceId, Summary, Target};
 use cargo::sources::source::QueryKind;
