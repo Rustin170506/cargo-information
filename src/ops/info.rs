@@ -1,28 +1,24 @@
-use std::collections::HashSet;
-
 use crate::ops::style::{CYAN, GREEN, NOP, YELLOW};
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, Package, SourceId, Summary, Target};
+use cargo::core::{Dependency, Package, Registry, SourceId, Summary, Target};
 use cargo::sources::source::QueryKind;
 use cargo::{CargoResult, Config};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let source_id = SourceId::crates_io(config)?;
     let mut registry = PackageRegistry::new(config)?;
-    registry.add_sources([source_id])?;
     // Make sure we get the lock before we download anything.
     let _lock = config.acquire_package_cache_lock()?;
+    registry.lock_patches();
 
-    let mut source = source_id.load(&config, &HashSet::new())?;
     let dep = Dependency::parse(spec, None, source_id)?;
-
     let summaries = loop {
         // Exact to avoid returning all for path/git
-        match source.query_vec(&dep, QueryKind::Exact) {
+        match registry.query_vec(&dep, QueryKind::Exact) {
             std::task::Poll::Ready(res) => {
                 break res?;
             }
-            std::task::Poll::Pending => source.block_until_ready()?,
+            std::task::Poll::Pending => registry.block_until_ready()?,
         }
     };
 
@@ -124,6 +120,8 @@ fn pretty_view(krate: &Package, summaries: &[Summary], config: &Config) -> Cargo
         }
         config.shell().write_stdout("\n", &NOP)?;
     }
+
+    config.shell().write_stdout("\n", &NOP)?;
 
     Ok(())
 }

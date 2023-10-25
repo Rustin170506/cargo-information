@@ -9,6 +9,7 @@ edition = "2021"
 anstyle = "1.0.4"
 anyhow = "1.0.75"
 cargo = { git = "https://github.com/rust-lang/cargo", version = "0.75.0" }
+cargo-util = "0.2.6"
 clap = "4.4.6"
 color-print = "0.3.5"
 

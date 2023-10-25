@@ -190,7 +190,7 @@ dependencies = [
  "cargo-credential-macos-keychain",
  "cargo-credential-wincred",
  "cargo-platform",
- "cargo-util",
+ "cargo-util 0.2.7",
  "clap",
  "color-print",
  "crates-io",
@@ -297,6 +297,7 @@ dependencies = [
  "anstyle",
  "anyhow",
  "cargo",
+ "cargo-util 0.2.6",
  "clap",
  "color-print",
 ]
@@ -307,6 +308,28 @@ version = "0.1.5"
 source = "git+https://github.com/rust-lang/cargo#7d6e312de5c4fdc76183ba4a5c245db1d9ade63a"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "cargo-util"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77042b5b585f701f1cfb4b6b12ebc02b9b0cefbc8dcce235906b6bf376d4245d"
+dependencies = [
+ "anyhow",
+ "core-foundation",
+ "filetime",
+ "hex",
+ "jobserver",
+ "libc",
+ "miow",
+ "same-file",
+ "sha2",
+ "shell-escape",
+ "tempfile",
+ "tracing",
+ "walkdir",
+ "windows-sys",
 ]
 
 [[package]]
