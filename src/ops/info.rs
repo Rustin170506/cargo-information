@@ -82,7 +82,7 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
     if let Some(ref description) = manmeta.description {
         writeln!(
             stdout,
-            "{cyan}{description}{reset}",
+            "{description}",
             description = description.trim_end()
         )?;
     }
