@@ -1,4 +1,6 @@
-use crate::ops::style::{CYAN, GREEN, NOP, YELLOW};
+use std::io::Write;
+
+use crate::ops::style::{CYAN, GREEN, YELLOW};
 use cargo::core::registry::PackageRegistry;
 use cargo::core::{Dependency, Package, Registry, SourceId, Summary, Target};
 use cargo::sources::source::QueryKind;
@@ -34,76 +36,83 @@ pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
 
     let package = package.get_one(package_id)?;
 
-    pretty_view(&package, &summaries, config)?;
+    let mut shell = config.shell();
+    let stdout = shell.out();
+
+    pretty_view(&package, &summaries, stdout)?;
 
     Ok(())
 }
 
-fn pretty_view(krate: &Package, summaries: &[Summary], config: &Config) -> CargoResult<()> {
+fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -> CargoResult<()> {
     let summary = krate.manifest().summary();
     let package_id = summary.package_id();
     let manmeta = krate.manifest().metadata();
 
-    config.shell().write_stdout("\n", &NOP)?;
-    config.shell().write_stdout(
-        format!(
-            "{name}@{version}",
-            name = package_id.name(),
-            version = package_id.version()
-        ),
-        &GREEN,
+    let green = GREEN.render();
+    let yellow = YELLOW.render();
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+
+    writeln!(stdout)?;
+    write!(
+        stdout,
+        "{green}{name}{reset}@{green}{version}{reset}",
+        name = package_id.name(),
+        version = package_id.version()
     )?;
-    config.shell().write_stdout(" | ", &NOP)?;
+    write!(stdout, " | ")?;
     match manmeta.license {
         Some(ref license) => {
-            config
-                .shell()
-                .write_stdout(format!("{license}", license = license), &GREEN)?;
+            write!(stdout, "{green}{license}{reset}", license = license)?;
         }
         None => {
-            config.shell().write_stdout("No license", &YELLOW)?;
+            write!(stdout, "{yellow}No license{reset}")?;
         }
     }
-    config.shell().write_stdout(" | ", &NOP)?;
-    config.shell().write_stdout("deps: ", &NOP)?;
+    write!(stdout, " | ")?;
+    write!(stdout, "deps: ")?;
     let deps = summary.dependencies().len();
-    config.shell().write_stdout(deps, &CYAN)?;
+    write!(stdout, "{cyan}{deps}{reset}")?;
 
-    config.shell().write_stdout(" | ", &NOP)?;
-    config.shell().write_stdout("versions: ", &NOP)?;
-    config.shell().write_stdout(summaries.len(), &YELLOW)?;
-
-    config.shell().write_stdout("\n", &NOP)?;
+    write!(stdout, " | ")?;
+    write!(stdout, "versions: ")?;
+    write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
+    writeln!(stdout)?;
 
     if let Some(ref description) = manmeta.description {
-        config.shell().write_stdout(description.trim_end(), &NOP)?;
-        config.shell().write_stdout("\n", &NOP)?;
+        writeln!(
+            stdout,
+            "{cyan}{description}{reset}",
+            description = description.trim_end()
+        )?;
     }
+    writeln!(stdout)?;
 
     if let Some(ref homepage) = manmeta.homepage {
-        config.shell().write_stdout("Homepage: ", &NOP)?;
-        config.shell().write_stdout(homepage, &CYAN)?;
-        config.shell().write_stdout("\n", &NOP)?;
+        write!(stdout, "Homepage: ")?;
+        writeln!(stdout, "{cyan}{homepage}{reset}", homepage = homepage)?;
     }
 
     if let Some(ref repository) = manmeta.repository {
-        config.shell().write_stdout("Repository: ", &NOP)?;
-        config.shell().write_stdout(repository, &CYAN)?;
-        config.shell().write_stdout("\n", &NOP)?;
+        write!(stdout, "Repository: ")?;
+        writeln!(stdout, "{cyan}{repository}{reset}", repository = repository)?;
     }
 
     if let Some(ref documentation) = manmeta.documentation {
-        config.shell().write_stdout("Documentation: ", &NOP)?;
-        config.shell().write_stdout(documentation, &CYAN)?;
-        config.shell().write_stdout("\n", &NOP)?;
+        write!(stdout, "Documentation: ")?;
+        writeln!(
+            stdout,
+            "{cyan}{documentation}{reset}",
+            documentation = documentation
+        )?;
     }
 
-    config.shell().write_stdout("\n", &NOP)?;
+    writeln!(stdout)?;
 
     if let Some(library) = krate.library() {
-        config.shell().write_stdout("lib: ", &NOP)?;
-        config.shell().write_stdout(library.name(), &CYAN)?;
-        config.shell().write_stdout("\n", &NOP)?;
+        write!(stdout, "lib: ")?;
+        writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
     }
 
     let binaries = krate
@@ -113,15 +122,15 @@ fn pretty_view(krate: &Package, summaries: &[Summary], config: &Config) -> Cargo
         .collect::<Vec<&Target>>();
 
     if !binaries.is_empty() {
-        config.shell().write_stdout("bin: ", &NOP)?;
+        write!(stdout, "bin: ")?;
         for binary in binaries {
-            config.shell().write_stdout(binary.name(), &CYAN)?;
-            config.shell().write_stdout(" ", &NOP)?;
+            write!(stdout, "{cyan}{name}{reset}", name = binary.name())?;
+            write!(stdout, " ")?;
         }
-        config.shell().write_stdout("\n", &NOP)?;
+        writeln!(stdout)?;
     }
 
-    config.shell().write_stdout("\n", &NOP)?;
+    writeln!(stdout)?;
 
     Ok(())
 }
