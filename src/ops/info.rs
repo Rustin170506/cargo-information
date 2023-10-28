@@ -2,8 +2,7 @@ use std::io::Write;
 
 use crate::ops::style::{CYAN, GREEN, YELLOW};
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, Package, Registry, SourceId, Summary, Target};
-use cargo::sources::source::QueryKind;
+use cargo::core::{Dependency, Package, QueryKind, Registry, SourceId, Summary, Target};
 use cargo::{CargoResult, Config};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
