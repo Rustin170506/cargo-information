@@ -1,6 +1,7 @@
 use std::io::Write;
 
 use crate::ops::style::{CYAN, GREEN, YELLOW};
+use cargo::core::dependency::DepKind;
 use cargo::core::registry::PackageRegistry;
 use cargo::core::{Dependency, Package, QueryKind, Registry, SourceId, Summary, Target};
 use cargo::{CargoResult, Config};
@@ -131,5 +132,82 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
 
     writeln!(stdout)?;
 
+    pretty_deps(krate, stdout)?;
+
+    Ok(())
+}
+
+fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
+    let yellow = YELLOW.render();
+    let reset = anstyle::Reset.render();
+
+    let dependencies = krate
+        .dependencies()
+        .iter()
+        .filter(|d| d.kind() == DepKind::Normal)
+        .map(|d| {
+            format!(
+                "{yellow}{name}{reset}: {version}",
+                name = d.package_name(),
+                version = d.version_req()
+            )
+        })
+        .collect::<Vec<String>>();
+    if !dependencies.is_empty() {
+        writeln!(stdout, "dependencies:")?;
+        print_deps(dependencies, stdout)?;
+    }
+
+    let dev_dependencies = krate
+        .dependencies()
+        .iter()
+        .filter(|d| d.kind() == DepKind::Development)
+        .map(|d| {
+            format!(
+                "{yellow}{name}{reset}: {version}",
+                name = d.package_name(),
+                version = d.version_req()
+            )
+        })
+        .collect::<Vec<String>>();
+    if !dev_dependencies.is_empty() {
+        writeln!(stdout, "dev-dependencies:")?;
+        print_deps(dev_dependencies, stdout)?;
+    }
+
+    let build_dependencies = krate
+        .dependencies()
+        .iter()
+        .filter(|d| d.kind() == DepKind::Build)
+        .map(|d| {
+            format!(
+                "{yellow}{name}{reset}: {version}",
+                name = d.package_name(),
+                version = d.version_req()
+            )
+        })
+        .collect::<Vec<String>>();
+
+    if !build_dependencies.is_empty() {
+        writeln!(stdout, "build-dependencies:")?;
+        print_deps(build_dependencies, stdout)?;
+    }
+
+    Ok(())
+}
+
+fn print_deps(dependencies: Vec<String>, stdout: &mut dyn Write) -> Result<(), anyhow::Error> {
+    let margin = dependencies.iter().map(|d| d.len()).max().unwrap_or(0);
+    let margin = margin + 2;
+    let mut count = 0;
+    for dep in &dependencies {
+        if count + margin > 128 {
+            writeln!(stdout)?;
+            count = 0;
+        }
+        write!(stdout, "{dep: <margin$}", dep = dep, margin = margin)?;
+        count += margin;
+    }
+    writeln!(stdout, "\n")?;
     Ok(())
 }
