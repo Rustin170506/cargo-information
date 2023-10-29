@@ -94,21 +94,17 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
 
     if let Some(ref homepage) = manmeta.homepage {
         write!(stdout, "Homepage: ")?;
-        writeln!(stdout, "{cyan}{homepage}{reset}", homepage = homepage)?;
+        writeln!(stdout, "{cyan}{homepage}{reset}")?;
     }
 
     if let Some(ref repository) = manmeta.repository {
         write!(stdout, "Repository: ")?;
-        writeln!(stdout, "{cyan}{repository}{reset}", repository = repository)?;
+        writeln!(stdout, "{cyan}{repository}{reset}")?;
     }
 
     if let Some(ref documentation) = manmeta.documentation {
         write!(stdout, "Documentation: ")?;
-        writeln!(
-            stdout,
-            "{cyan}{documentation}{reset}",
-            documentation = documentation
-        )?;
+        writeln!(stdout, "{cyan}{documentation}{reset}")?;
     }
 
     writeln!(stdout)?;
@@ -202,15 +198,14 @@ fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
 }
 
 fn print_deps(dependencies: Vec<String>, stdout: &mut dyn Write) -> Result<(), anyhow::Error> {
-    let margin = dependencies.iter().map(|d| d.len()).max().unwrap_or(0);
-    let margin = margin + 2;
+    let margin = dependencies.iter().map(|d| d.len()).max().unwrap_or(0) + 2;
     let mut count = 0;
     for dep in &dependencies {
         if count + margin > 128 {
             writeln!(stdout)?;
             count = 0;
         }
-        write!(stdout, "{dep: <margin$}", dep = dep, margin = margin)?;
+        write!(stdout, "{dep: <margin$}")?;
         count += margin;
     }
     writeln!(stdout, "\n")?;
@@ -238,7 +233,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         .find(|(name, _)| name.as_str() == "default")
         .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>())
         .unwrap();
-    let default = "default".to_string();
+    let default = "default".to_owned();
     write!(stdout, "{cyan}")?;
     write!(stdout, "{default: <margin$}")?;
     write!(stdout, "{reset} = ")?;
