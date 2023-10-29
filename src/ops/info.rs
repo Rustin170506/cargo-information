@@ -84,23 +84,23 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
     writeln!(stdout)?;
 
     if !manmeta.keywords.is_empty() {
-        write!(stdout, "Keywords: ")?;
+        write!(stdout, "keywords: ")?;
         writeln!(
             stdout,
             "{cyan}#{keywords}{reset}",
             keywords = manmeta.keywords.join("  #")
         )?;
-        writeln!(stdout)?;
     }
 
     if let Some(ref description) = manmeta.description {
+        writeln!(stdout)?;
         writeln!(
             stdout,
             "{description}",
             description = description.trim_end()
         )?;
+        writeln!(stdout)?;
     }
-    writeln!(stdout)?;
 
     if let Some(ref homepage) = manmeta.homepage {
         write!(stdout, "Homepage: ")?;
