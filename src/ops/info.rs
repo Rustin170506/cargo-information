@@ -257,17 +257,15 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         } else {
             write!(stdout, "{name: <margin$} = ")?;
         }
-        if !features.is_empty() {
-            writeln!(
-                stdout,
-                "[{features}]",
-                features = features
-                    .iter()
-                    .map(|f| f.to_string())
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )?;
-        }
+        writeln!(
+            stdout,
+            "[{features}]",
+            features = features
+                .iter()
+                .map(|f| f.to_string())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )?;
     }
     Ok(())
 }
