@@ -81,6 +81,13 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
+
+    if let Some(rust_version) = &manmeta.rust_version {
+        write!(stdout, " | ")?;
+        write!(stdout, "rust: ")?;
+        write!(stdout, "{yellow}{rust_version}{reset}")?;
+    }
+
     writeln!(stdout)?;
 
     if !manmeta.keywords.is_empty() {
