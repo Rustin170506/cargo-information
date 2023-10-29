@@ -1,9 +1,12 @@
 use std::io::Write;
 
 use crate::ops::style::{CYAN, GREEN, YELLOW};
+use anyhow::Ok;
 use cargo::core::dependency::DepKind;
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, Package, QueryKind, Registry, SourceId, Summary, Target};
+use cargo::core::{
+    Dependency, FeatureMap, Package, QueryKind, Registry, SourceId, Summary, Target,
+};
 use cargo::{CargoResult, Config};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
@@ -39,7 +42,7 @@ pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let mut shell = config.shell();
     let stdout = shell.out();
 
-    pretty_view(&package, &summaries, stdout)?;
+    pretty_view(package, &summaries, stdout)?;
 
     Ok(())
 }
@@ -134,6 +137,8 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
 
     pretty_deps(krate, stdout)?;
 
+    pretty_features(summary.features(), stdout)?;
+
     Ok(())
 }
 
@@ -209,5 +214,65 @@ fn print_deps(dependencies: Vec<String>, stdout: &mut dyn Write) -> Result<(), a
         count += margin;
     }
     writeln!(stdout, "\n")?;
+    Ok(())
+}
+
+fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult<()> {
+    let yellow = YELLOW.render();
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+
+    writeln!(stdout, "features:")?;
+    let margin = features
+        .iter()
+        .map(|(name, _)| name.len())
+        .max()
+        .unwrap_or_default();
+    if margin == 0 {
+        return Ok(());
+    }
+
+    // Find the default features.
+    let default_features = features
+        .iter()
+        .find(|(name, _)| name.as_str() == "default")
+        .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>())
+        .unwrap();
+    let default = "default".to_string();
+    write!(stdout, "{cyan}")?;
+    write!(stdout, "{default: <margin$}")?;
+    write!(stdout, "{reset} = ")?;
+    writeln!(
+        stdout,
+        "[{features}]",
+        features = default_features
+            .iter()
+            .map(|s| format!("{yellow}{s}{reset}"))
+            .collect::<Vec<String>>()
+            .join(", ")
+    )?;
+    for (name, features) in features.iter() {
+        if name.as_str() == "default" {
+            continue;
+        }
+        if default_features.contains(&name.to_string()) {
+            write!(stdout, "{yellow}")?;
+            write!(stdout, "{name: <margin$}")?;
+            write!(stdout, "{reset} = ")?;
+        } else {
+            write!(stdout, "{name: <margin$} = ")?;
+        }
+        if !features.is_empty() {
+            writeln!(
+                stdout,
+                "[{features}]",
+                features = features
+                    .iter()
+                    .map(|f| f.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+        }
+    }
     Ok(())
 }
