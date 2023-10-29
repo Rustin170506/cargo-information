@@ -83,6 +83,16 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
     writeln!(stdout)?;
 
+    if !manmeta.keywords.is_empty() {
+        write!(stdout, "Keywords: ")?;
+        writeln!(
+            stdout,
+            "{cyan}#{keywords}{reset}",
+            keywords = manmeta.keywords.join("  #")
+        )?;
+        writeln!(stdout)?;
+    }
+
     if let Some(ref description) = manmeta.description {
         writeln!(
             stdout,
