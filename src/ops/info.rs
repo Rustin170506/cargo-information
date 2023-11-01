@@ -64,6 +64,7 @@ fn pretty_view(
     let cyan = CYAN.render();
     let reset = anstyle::Reset.render();
 
+    // Basic information.
     writeln!(stdout)?;
     write!(
         stdout,
@@ -84,19 +85,17 @@ fn pretty_view(
     write!(stdout, "deps: ")?;
     let deps = summary.dependencies().len();
     write!(stdout, "{cyan}{deps}{reset}")?;
-
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
-
     if let Some(rust_version) = &metadata.rust_version {
         write!(stdout, " | ")?;
         write!(stdout, "rust: ")?;
         write!(stdout, "{yellow}{rust_version}{reset}")?;
     }
-
     writeln!(stdout)?;
 
+    // Keywords.
     if !metadata.keywords.is_empty() {
         write!(stdout, "keywords: ")?;
         writeln!(
@@ -104,10 +103,11 @@ fn pretty_view(
             "{cyan}#{keywords}{reset}",
             keywords = metadata.keywords.join("  #")
         )?;
+        writeln!(stdout)?;
     }
 
+    // Description and links.
     if let Some(ref description) = metadata.description {
-        writeln!(stdout)?;
         writeln!(
             stdout,
             "{description}",
@@ -115,35 +115,30 @@ fn pretty_view(
         )?;
         writeln!(stdout)?;
     }
-
     if let Some(ref homepage) = metadata.homepage {
         write!(stdout, "Homepage: ")?;
         writeln!(stdout, "{cyan}{homepage}{reset}")?;
     }
-
     if let Some(ref repository) = metadata.repository {
         write!(stdout, "Repository: ")?;
         writeln!(stdout, "{cyan}{repository}{reset}")?;
     }
-
     if let Some(ref documentation) = metadata.documentation {
         write!(stdout, "Documentation: ")?;
         writeln!(stdout, "{cyan}{documentation}{reset}")?;
     }
-
     writeln!(stdout)?;
 
+    // Kind.
     if let Some(library) = package.library() {
         write!(stdout, "lib: ")?;
         writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
     }
-
     let binaries = package
         .targets()
         .iter()
         .filter(|t| t.is_bin())
         .collect::<Vec<&Target>>();
-
     if !binaries.is_empty() {
         write!(stdout, "bin: ")?;
         for binary in binaries {
@@ -152,7 +147,6 @@ fn pretty_view(
         }
         writeln!(stdout)?;
     }
-
     writeln!(stdout)?;
 
     pretty_deps(package, stdout)?;
@@ -162,11 +156,11 @@ fn pretty_view(
     Ok(())
 }
 
-fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
+fn pretty_deps(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
     let yellow = YELLOW.render();
     let reset = anstyle::Reset.render();
 
-    let dependencies = krate
+    let dependencies = package
         .dependencies()
         .iter()
         .filter(|d| d.kind() == DepKind::Normal)
@@ -183,7 +177,7 @@ fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
         print_deps(dependencies, stdout)?;
     }
 
-    let dev_dependencies = krate
+    let dev_dependencies = package
         .dependencies()
         .iter()
         .filter(|d| d.kind() == DepKind::Development)
@@ -200,7 +194,7 @@ fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
         print_deps(dev_dependencies, stdout)?;
     }
 
-    let build_dependencies = krate
+    let build_dependencies = package
         .dependencies()
         .iter()
         .filter(|d| d.kind() == DepKind::Build)
@@ -212,7 +206,6 @@ fn pretty_deps(krate: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
             )
         })
         .collect::<Vec<String>>();
-
     if !build_dependencies.is_empty() {
         writeln!(stdout, "build-dependencies:")?;
         print_deps(build_dependencies, stdout)?;
@@ -241,7 +234,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     let cyan = CYAN.render();
     let reset = anstyle::Reset.render();
 
-    writeln!(stdout, "features:")?;
+    // If there are no features, return early.
     let margin = features
         .iter()
         .map(|(name, _)| name.len())
@@ -251,15 +244,17 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         return Ok(());
     }
 
+    writeln!(stdout, "features:")?;
+
     // Find the default features.
+    const DEFAULT_FEATURE_NAME: &str = "default";
     let default_features = features
         .iter()
-        .find(|(name, _)| name.as_str() == "default")
+        .find(|(name, _)| name.as_str() == DEFAULT_FEATURE_NAME)
         .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>())
         .unwrap();
-    let default = "default".to_owned();
     write!(stdout, "{cyan}")?;
-    write!(stdout, "{default: <margin$}")?;
+    write!(stdout, "{DEFAULT_FEATURE_NAME: <margin$}")?;
     write!(stdout, "{reset} = ")?;
     writeln!(
         stdout,
@@ -271,9 +266,10 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
             .join(", ")
     )?;
     for (name, features) in features.iter() {
-        if name.as_str() == "default" {
+        if name.as_str() == DEFAULT_FEATURE_NAME {
             continue;
         }
+        // If the feature is a default feature, color it yellow.
         if default_features.contains(&name.to_string()) {
             write!(stdout, "{yellow}")?;
             write!(stdout, "{name: <margin$}")?;
