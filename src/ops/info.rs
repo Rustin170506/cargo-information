@@ -10,8 +10,9 @@ use cargo::core::{
 use cargo::{CargoResult, Config};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
-    let source_id = SourceId::crates_io(config)?;
+    let source_id = SourceId::crates_io_maybe_sparse_http(config)?;
     let mut registry = PackageRegistry::new(config)?;
+
     // Make sure we get the lock before we download anything.
     let _lock = config.acquire_package_cache_lock()?;
     registry.lock_patches();
