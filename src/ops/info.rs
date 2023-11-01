@@ -57,7 +57,7 @@ fn pretty_view(
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
-    let manmeta = package.manifest().metadata();
+    let metadata = package.manifest().metadata();
 
     let green = GREEN.render();
     let yellow = YELLOW.render();
@@ -72,7 +72,7 @@ fn pretty_view(
         version = package_id.version()
     )?;
     write!(stdout, " | ")?;
-    match manmeta.license {
+    match metadata.license {
         Some(ref license) => {
             write!(stdout, "{green}{license}{reset}", license = license)?;
         }
@@ -89,7 +89,7 @@ fn pretty_view(
     write!(stdout, "versions: ")?;
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
 
-    if let Some(rust_version) = &manmeta.rust_version {
+    if let Some(rust_version) = &metadata.rust_version {
         write!(stdout, " | ")?;
         write!(stdout, "rust: ")?;
         write!(stdout, "{yellow}{rust_version}{reset}")?;
@@ -97,16 +97,16 @@ fn pretty_view(
 
     writeln!(stdout)?;
 
-    if !manmeta.keywords.is_empty() {
+    if !metadata.keywords.is_empty() {
         write!(stdout, "keywords: ")?;
         writeln!(
             stdout,
             "{cyan}#{keywords}{reset}",
-            keywords = manmeta.keywords.join("  #")
+            keywords = metadata.keywords.join("  #")
         )?;
     }
 
-    if let Some(ref description) = manmeta.description {
+    if let Some(ref description) = metadata.description {
         writeln!(stdout)?;
         writeln!(
             stdout,
@@ -116,17 +116,17 @@ fn pretty_view(
         writeln!(stdout)?;
     }
 
-    if let Some(ref homepage) = manmeta.homepage {
+    if let Some(ref homepage) = metadata.homepage {
         write!(stdout, "Homepage: ")?;
         writeln!(stdout, "{cyan}{homepage}{reset}")?;
     }
 
-    if let Some(ref repository) = manmeta.repository {
+    if let Some(ref repository) = metadata.repository {
         write!(stdout, "Repository: ")?;
         writeln!(stdout, "{cyan}{repository}{reset}")?;
     }
 
-    if let Some(ref documentation) = manmeta.documentation {
+    if let Some(ref documentation) = metadata.documentation {
         write!(stdout, "Documentation: ")?;
         writeln!(stdout, "{cyan}{documentation}{reset}")?;
     }
