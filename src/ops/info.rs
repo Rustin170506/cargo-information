@@ -83,7 +83,7 @@ fn pretty_view(
     }
     write!(stdout, " | ")?;
     write!(stdout, "deps: ")?;
-    let deps = summary.dependencies().len();
+    let deps = package.dependencies().len();
     write!(stdout, "{cyan}{deps}{reset}")?;
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
