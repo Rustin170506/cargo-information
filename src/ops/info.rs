@@ -9,6 +9,7 @@ use cargo::core::{
 };
 use cargo::{CargoResult, Config};
 
+/// Check the information about a package.
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let source_id = SourceId::crates_io_maybe_sparse_http(config)?;
     let mut registry = PackageRegistry::new(config)?;
@@ -48,10 +49,15 @@ pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     Ok(())
 }
 
-fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -> CargoResult<()> {
-    let summary = krate.manifest().summary();
+// Pretty print the package information.
+fn pretty_view(
+    package: &Package,
+    summaries: &[Summary],
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
+    let summary = package.manifest().summary();
     let package_id = summary.package_id();
-    let manmeta = krate.manifest().metadata();
+    let manmeta = package.manifest().metadata();
 
     let green = GREEN.render();
     let yellow = YELLOW.render();
@@ -127,12 +133,12 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
 
     writeln!(stdout)?;
 
-    if let Some(library) = krate.library() {
+    if let Some(library) = package.library() {
         write!(stdout, "lib: ")?;
         writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
     }
 
-    let binaries = krate
+    let binaries = package
         .targets()
         .iter()
         .filter(|t| t.is_bin())
@@ -149,7 +155,7 @@ fn pretty_view(krate: &Package, summaries: &[Summary], stdout: &mut dyn Write) -
 
     writeln!(stdout)?;
 
-    pretty_deps(krate, stdout)?;
+    pretty_deps(package, stdout)?;
 
     pretty_features(summary.features(), stdout)?;
 
