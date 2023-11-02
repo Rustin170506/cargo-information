@@ -215,29 +215,38 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
 
     // Find the default features.
     const DEFAULT_FEATURE_NAME: &str = "default";
-    let default_features = features
+    let default_features = &features
         .iter()
         .find(|(name, _)| name.as_str() == DEFAULT_FEATURE_NAME)
-        .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>())
-        .unwrap();
-    write!(stdout, "{cyan}")?;
-    write!(stdout, "{DEFAULT_FEATURE_NAME: <margin$}")?;
-    write!(stdout, "{reset} = ")?;
-    writeln!(
-        stdout,
-        "[{features}]",
-        features = default_features
-            .iter()
-            .map(|s| format!("{yellow}{s}{reset}"))
-            .collect::<Vec<String>>()
-            .join(", ")
-    )?;
+        .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>());
+    if default_features.is_some() {
+        write!(stdout, "{cyan}")?;
+        write!(stdout, "{DEFAULT_FEATURE_NAME: <margin$}")?;
+        write!(stdout, "{reset} = ")?;
+        writeln!(
+            stdout,
+            "[{features}]",
+            features = default_features
+                .as_ref()
+                .unwrap()
+                .iter()
+                .map(|s| format!("{yellow}{s}{reset}"))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )?;
+    }
+
     for (name, features) in features.iter() {
         if name.as_str() == DEFAULT_FEATURE_NAME {
             continue;
         }
         // If the feature is a default feature, color it yellow.
-        if default_features.contains(&name.to_string()) {
+        if default_features.is_some()
+            && default_features
+                .as_ref()
+                .unwrap()
+                .contains(&name.to_string())
+        {
             write!(stdout, "{yellow}")?;
             write!(stdout, "{name: <margin$}")?;
             write!(stdout, "{reset} = ")?;
