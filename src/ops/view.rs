@@ -46,6 +46,13 @@ pub(super) fn pretty_view(
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
+    write!(stdout, " | ")?;
+    write!(stdout, "edition: ")?;
+    write!(
+        stdout,
+        "{yellow}{edition}{reset}",
+        edition = package.manifest().edition()
+    )?;
     if let Some(rust_version) = &metadata.rust_version {
         write!(stdout, " | ")?;
         write!(stdout, "rust: ")?;
