@@ -118,6 +118,8 @@ pub(super) fn pretty_view(
 
     pretty_features(summary.features(), stdout)?;
 
+    pretty_authors(&metadata.authors, stdout)?;
+
     Ok(())
 }
 
@@ -252,5 +254,21 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
                 .join(", ")
         )?;
     }
+    writeln!(stdout)?;
+
+    Ok(())
+}
+
+fn pretty_authors(authors: &[String], stdout: &mut dyn Write) -> CargoResult<()> {
+    let yellow = YELLOW.render();
+    let reset = anstyle::Reset.render();
+
+    if !authors.is_empty() {
+        writeln!(stdout, "authors:")?;
+        for author in authors {
+            writeln!(stdout, "- {yellow}{author}{reset}")?;
+        }
+    }
+
     Ok(())
 }
