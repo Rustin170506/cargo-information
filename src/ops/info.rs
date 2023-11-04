@@ -9,17 +9,10 @@ use super::view::pretty_view;
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     match root_manifest(None, config) {
         Ok(root) => {
-            let ws = Workspace::new(&root, config);
-            match ws {
-                Ok(ws) => search_in_workspace(spec, &ws, config),
-                Err(_) => {
-                    // If we can't load the workspace, then we're not in a workspace
-                    // and we should search crates.io.
-                    search_out_of_workspace(spec, config)
-                }
-            }
+            let ws = Workspace::new(&root, config)?;
+            search_in_workspace(spec, &ws, config)
         }
-        Err(_) => return search_out_of_workspace(spec, config),
+        Err(_) => search_out_of_workspace(spec, config),
     }
 }
 
@@ -35,6 +28,17 @@ fn search_in_workspace(spec: &str, ws: &Workspace<'_>, config: &Config) -> Cargo
 
     let package_id = resolve.query(spec)?;
 
+    let dep = Dependency::parse(package_id.name(), None, package_id.source_id())?;
+    let summaries = loop {
+        // Exact to avoid returning all for path/git
+        match registry.query_vec(&dep, QueryKind::Exact) {
+            std::task::Poll::Ready(res) => {
+                break res?;
+            }
+            std::task::Poll::Pending => registry.block_until_ready()?,
+        }
+    };
+
     let package = registry.get(&[package_id])?;
 
     let package = package.get_one(package_id)?;
@@ -42,8 +46,7 @@ fn search_in_workspace(spec: &str, ws: &Workspace<'_>, config: &Config) -> Cargo
     let mut shell = config.shell();
     let stdout = shell.out();
 
-    // TODO: fix this summary.
-    pretty_view(package, &[], stdout)?;
+    pretty_view(package, &summaries, stdout)?;
 
     Ok(())
 }
