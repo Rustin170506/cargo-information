@@ -23,10 +23,12 @@ pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
         }
     }
 
-    search(spec, package_id, config, registry)
+    query_and_pretty_view(spec, package_id, config, registry)
 }
 
-fn search(
+// Query the package registry and pretty print the result.
+// If package_id is None, find the latest version.
+fn query_and_pretty_view(
     spec: &str,
     package_id: Option<PackageId>,
     config: &Config,
