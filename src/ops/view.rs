@@ -5,7 +5,7 @@ use cargo::{
     CargoResult,
 };
 
-use super::style::{CYAN, GREEN, YELLOW};
+use super::style::{CYAN, YELLOW};
 
 // Pretty print the package information.
 pub(super) fn pretty_view(
@@ -17,7 +17,6 @@ pub(super) fn pretty_view(
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
 
-    let green = GREEN.render();
     let yellow = YELLOW.render();
     let cyan = CYAN.render();
     let reset = anstyle::Reset.render();
@@ -26,14 +25,14 @@ pub(super) fn pretty_view(
     writeln!(stdout)?;
     write!(
         stdout,
-        "{green}{name}{reset}@{green}{version}{reset}",
+        "{yellow}{name}{reset}@{yellow}{version}{reset}",
         name = package_id.name(),
         version = package_id.version()
     )?;
     write!(stdout, " | ")?;
     match metadata.license {
         Some(ref license) => {
-            write!(stdout, "{green}{license}{reset}", license = license)?;
+            write!(stdout, "{yellow}{license}{reset}", license = license)?;
         }
         None => {
             write!(stdout, "{yellow}No license{reset}")?;
