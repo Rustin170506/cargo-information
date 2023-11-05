@@ -3,9 +3,9 @@ use cargo::core::{Dependency, PackageId, QueryKind, Registry, SourceId, Workspac
 use cargo::util::command_prelude::root_manifest;
 use cargo::{ops, CargoResult, Config};
 
+use super::style::{CYAN, YELLOW};
 use super::view::pretty_view;
 
-/// Check the information about a package.
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
@@ -34,9 +34,9 @@ fn query_and_pretty_view(
     config: &Config,
     mut registry: PackageRegistry,
 ) -> CargoResult<()> {
-    let source_id = match package_id {
-        Some(package_id) => package_id.source_id(),
-        None => SourceId::crates_io(config)?,
+    let (source_id, from_workspace) = match package_id {
+        Some(package_id) => (package_id.source_id(), true),
+        None => (SourceId::crates_io(config)?, false),
     };
     // Query without version requirement to get all index summaries.
     let dep = Dependency::parse(spec, None, source_id)?;
@@ -65,6 +65,21 @@ fn query_and_pretty_view(
 
     let mut shell = config.shell();
     let stdout = shell.out();
+
+    // Suggest the cargo tree command if the package is from workspace.
+    if from_workspace {
+        let yellow = YELLOW.render();
+        let cyan = CYAN.render();
+        let reset = anstyle::Reset.render();
+
+        writeln!(
+            stdout,
+            "{yellow}This package is from workspace. \
+            Use {reset}{cyan}`cargo tree --package {name}@{version} --invert`{reset}{yellow} to view the dependency tree.{reset}",
+            name = package_id.name(),
+            version = package_id.version(),
+        )?;
+    }
 
     pretty_view(package, &summaries, stdout)?;
 
