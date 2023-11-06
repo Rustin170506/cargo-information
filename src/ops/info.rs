@@ -3,8 +3,7 @@ use cargo::core::{Dependency, PackageId, QueryKind, Registry, SourceId, Workspac
 use cargo::util::command_prelude::root_manifest;
 use cargo::{ops, CargoResult, Config};
 
-use super::style::{CYAN, YELLOW};
-use super::view::pretty_view;
+use super::view::{pretty_view, suggest_cargo_tree};
 
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
@@ -68,17 +67,7 @@ fn query_and_pretty_view(
 
     // Suggest the cargo tree command if the package is from workspace.
     if from_workspace {
-        let yellow = YELLOW.render();
-        let cyan = CYAN.render();
-        let reset = anstyle::Reset.render();
-
-        writeln!(
-            stdout,
-            "{yellow}This package is from workspace. \
-            Use {reset}{cyan}`cargo tree --package {name}@{version} --invert`{reset}{yellow} to view the dependency tree.{reset}",
-            name = package_id.name(),
-            version = package_id.version(),
-        )?;
+        suggest_cargo_tree(package_id, stdout)?;
     }
 
     pretty_view(package, &summaries, stdout)?;
