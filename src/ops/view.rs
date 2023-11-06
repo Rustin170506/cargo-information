@@ -41,7 +41,7 @@ pub(super) fn pretty_view(
     write!(stdout, " | ")?;
     write!(stdout, "deps: ")?;
     let deps = package.dependencies().len();
-    write!(stdout, "{cyan}{deps}{reset}")?;
+    write!(stdout, "{yellow}{deps}{reset}")?;
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
     write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
