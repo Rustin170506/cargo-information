@@ -202,9 +202,9 @@ dependencies = [
  "cargo-credential-macos-keychain",
  "cargo-credential-wincred",
  "cargo-platform",
- "cargo-util",
+ "cargo-util 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap",
- "crates-io",
+ "crates-io 0.38.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "curl",
  "curl-sys",
  "filetime",
@@ -314,9 +314,12 @@ dependencies = [
  "anstyle",
  "anyhow",
  "cargo",
- "cargo-util",
+ "cargo-test-macro",
+ "cargo-test-support",
+ "cargo-util 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap",
  "color-print",
+ "snapbox",
 ]
 
 [[package]]
@@ -329,10 +332,63 @@ dependencies = [
 ]
 
 [[package]]
+name = "cargo-test-macro"
+version = "0.1.0"
+source = "git+https://github.com/rust-lang/cargo?tag=0.74.0#d252bce6553c8cc521840c9dd6b9f6cd4aedd8b0"
+
+[[package]]
+name = "cargo-test-support"
+version = "0.1.0"
+source = "git+https://github.com/rust-lang/cargo?tag=0.74.0#d252bce6553c8cc521840c9dd6b9f6cd4aedd8b0"
+dependencies = [
+ "anyhow",
+ "cargo-test-macro",
+ "cargo-util 0.2.6 (git+https://github.com/rust-lang/cargo?tag=0.74.0)",
+ "crates-io 0.38.0 (git+https://github.com/rust-lang/cargo?tag=0.74.0)",
+ "filetime",
+ "flate2",
+ "git2",
+ "glob",
+ "itertools",
+ "lazy_static",
+ "pasetors",
+ "serde",
+ "serde_json",
+ "snapbox",
+ "tar",
+ "termcolor",
+ "time",
+ "toml",
+ "url",
+ "windows-sys",
+]
+
+[[package]]
 name = "cargo-util"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77042b5b585f701f1cfb4b6b12ebc02b9b0cefbc8dcce235906b6bf376d4245d"
+dependencies = [
+ "anyhow",
+ "core-foundation",
+ "filetime",
+ "hex",
+ "jobserver",
+ "libc",
+ "miow",
+ "same-file",
+ "sha2",
+ "shell-escape",
+ "tempfile",
+ "tracing",
+ "walkdir",
+ "windows-sys",
+]
+
+[[package]]
+name = "cargo-util"
+version = "0.2.6"
+source = "git+https://github.com/rust-lang/cargo?tag=0.74.0#d252bce6553c8cc521840c9dd6b9f6cd4aedd8b0"
 dependencies = [
  "anyhow",
  "core-foundation",
@@ -434,6 +490,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28c122c3980598d243d63d9a704629a2d748d101f278052ff068be5a4423ab6f"
 
 [[package]]
+name = "content_inspector"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7bda66e858c683005a53a9a60c69a4aca7eeaa45d124526e389f7aec8e62f38"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -463,6 +528,19 @@ name = "crates-io"
 version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4bd35a7899c7804e2f8e305438d7b70a852c0424009f3ac29ca4f6733f2aec85"
+dependencies = [
+ "curl",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "url",
+]
+
+[[package]]
+name = "crates-io"
+version = "0.38.0"
+source = "git+https://github.com/rust-lang/cargo?tag=0.74.0#d252bce6553c8cc521840c9dd6b9f6cd4aedd8b0"
 dependencies = [
  "curl",
  "percent-encoding",
@@ -1817,6 +1895,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "normalize-line-endings"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
+
+[[package]]
 name = "normpath"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2427,6 +2511,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "similar"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2aeaf503862c419d66959f5d7ca015337d864e9c49485d771b732e2a20453597"
+
+[[package]]
 name = "sized-chunks"
 version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2441,6 +2531,33 @@ name = "smallvec"
 version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "942b4a808e05215192e39f4ab80813e599068285906cc91aa64f923db842bd5a"
+
+[[package]]
+name = "snapbox"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4b377c0b6e4715c116473d8e40d51e3fa5b0a2297ca9b2a931ba800667b259ed"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "content_inspector",
+ "dunce",
+ "filetime",
+ "normalize-line-endings",
+ "similar",
+ "snapbox-macros",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "snapbox-macros"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed1559baff8a696add3322b9be3e940d433e7bb4e38d79017205fd37ff28b28e"
+dependencies = [
+ "anstream",
+]
 
 [[package]]
 name = "socket2"
