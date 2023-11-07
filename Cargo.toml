@@ -17,5 +17,10 @@ clap = "4.4.6"
 color-print = "0.3.5"
 
 
+[dev-dependencies]
+cargo-test-macro = {git = "https://github.com/rust-lang/cargo", tag = "0.74.0"}
+cargo-test-support = {git = "https://github.com/rust-lang/cargo", tag = "0.74.0"}
+snapbox = "0.4.14"
+
 [[bin]]
 name = "info"
