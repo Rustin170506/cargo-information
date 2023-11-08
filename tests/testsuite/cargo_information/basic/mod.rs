@@ -23,6 +23,7 @@ fn case() {
         .with_assert(compare::assert_ui())
         .test_env()
         .arg("my-package")
+        .arg("--color=never")
         .assert()
         .success()
         .stdout_matches_path(curr_dir!().join("stdout.log"))

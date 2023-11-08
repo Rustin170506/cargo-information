@@ -1,5 +1,7 @@
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, PackageId, QueryKind, Registry, SourceId, Workspace};
+use cargo::core::{Dependency, PackageId, Registry, SourceId, Workspace};
+use cargo::sources::source::QueryKind;
+use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
 use cargo::{ops, CargoResult, Config};
 
@@ -8,7 +10,7 @@ use super::view::{pretty_view, suggest_cargo_tree};
 pub fn info(spec: &str, config: &Config) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
-    let _lock = config.acquire_package_cache_lock()?;
+    let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
     registry.lock_patches();
 
     let mut package_id = None;
