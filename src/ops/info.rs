@@ -67,12 +67,12 @@ fn query_and_pretty_view(
     let mut shell = config.shell();
     let stdout = shell.out();
 
+    pretty_view(package, &summaries, stdout)?;
+
     // Suggest the cargo tree command if the package is from workspace.
     if from_workspace {
         suggest_cargo_tree(package_id, stdout)?;
     }
-
-    pretty_view(package, &summaries, stdout)?;
 
     Ok(())
 }
