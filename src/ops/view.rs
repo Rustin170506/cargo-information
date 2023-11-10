@@ -284,11 +284,13 @@ fn pretty_authors(authors: &[String], stdout: &mut dyn Write) -> CargoResult<()>
 // Suggest the cargo tree command to view the dependency tree.
 pub(super) fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
     let cyan = CYAN.render();
+    let bold = (anstyle::Style::new() | anstyle::Effects::BOLD).render();
     let reset = anstyle::Reset.render();
 
     writeln!(
         stdout,
-        "This package is from current workspace. Use {cyan}`cargo tree --package {name}@{version} --invert`{reset} to view the dependency tree.",
+        "{cyan}note{reset}{bold}:{reset} This package is from current workspace. \
+        You can use {cyan}`cargo tree --package {name}@{version} --invert`{reset} to view the dependency tree.",
         name = package_id.name(),
         version = package_id.version(),
     )?;
