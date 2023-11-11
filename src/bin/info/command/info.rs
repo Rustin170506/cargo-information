@@ -82,3 +82,8 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
     ops::info(pkgid, config)?;
     Ok(())
 }
+
+#[test]
+fn verify_cli() {
+    cli().debug_assert();
+}
