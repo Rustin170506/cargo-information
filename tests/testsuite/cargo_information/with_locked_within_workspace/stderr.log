@@ -1,1 +1,1 @@
-error: the options --frozen or --locked can only be used within a workspace
+error: the option `--locked` can only be used within a workspace

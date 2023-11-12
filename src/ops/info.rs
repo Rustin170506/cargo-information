@@ -41,8 +41,14 @@ fn query_and_pretty_view(
     };
 
     // Only in workspace, we can use --frozen or --locked.
-    if !from_workspace && (config.frozen() || config.locked()) {
-        anyhow::bail!("the options --frozen or --locked can only be used within a workspace");
+    if !from_workspace {
+        if config.locked() {
+            anyhow::bail!("the option `--locked` can only be used within a workspace");
+        }
+
+        if config.frozen() {
+            anyhow::bail!("the option `--frozen` can only be used within a workspace");
+        }
     }
 
     // Query without version requirement to get all index summaries.
