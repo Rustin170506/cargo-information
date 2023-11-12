@@ -1,0 +1,10 @@
+error: failed to load source for dependency `unknown`
+
+Caused by:
+  Unable to update registry `crates-io`
+
+Caused by:
+  failed to update replaced source registry `crates-io`
+
+Caused by:
+  attempting to make an HTTP request, but --frozen was specified
