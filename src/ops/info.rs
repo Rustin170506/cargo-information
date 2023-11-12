@@ -51,15 +51,25 @@ fn query_and_pretty_view(
         }
     };
 
-    let package_id = package_id.unwrap_or_else(|| {
-        // Find the latest version.
-        let summary = summaries
-            .iter()
-            .max_by_key(|s| s.package_id().version())
-            .unwrap();
+    let package_id = match package_id {
+        Some(id) => id,
+        None => {
+            // Find the latest version.
+            let summary = summaries.iter().max_by_key(|s| s.package_id().version());
 
-        summary.package_id()
-    });
+            // If can not find the latest version, return an error.
+            match summary {
+                Some(summary) => summary.package_id(),
+                None => {
+                    anyhow::bail!(
+                        "could not find `{}` in registry `{}`",
+                        spec,
+                        source_id.url()
+                    )
+                }
+            }
+        }
+    };
 
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
