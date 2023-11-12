@@ -39,6 +39,18 @@ fn query_and_pretty_view(
         Some(package_id) => (package_id.source_id(), true),
         None => (SourceId::crates_io(config)?, false),
     };
+
+    // Only in workspace, we can use --frozen or --locked.
+    if !from_workspace {
+        if config.locked() {
+            anyhow::bail!("the option `--locked` can only be used within a workspace");
+        }
+
+        if config.frozen() {
+            anyhow::bail!("the option `--frozen` can only be used within a workspace");
+        }
+    }
+
     // Query without version requirement to get all index summaries.
     let dep = Dependency::parse(spec, None, source_id)?;
     let summaries = loop {
