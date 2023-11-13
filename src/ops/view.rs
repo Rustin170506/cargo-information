@@ -276,6 +276,7 @@ fn pretty_authors(authors: &[String], stdout: &mut dyn Write) -> CargoResult<()>
         for author in authors {
             writeln!(stdout, "- {yellow}{author}{reset}")?;
         }
+        writeln!(stdout)?;
     }
 
     Ok(())
