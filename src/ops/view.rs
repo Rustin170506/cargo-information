@@ -38,25 +38,7 @@ pub(super) fn pretty_view(
 
     pretty_description_and_links(metadata, stdout)?;
 
-    // Kind.
-    if let Some(library) = package.library() {
-        write!(stdout, "lib: ")?;
-        writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
-    }
-    let binaries = package
-        .targets()
-        .iter()
-        .filter(|t| t.is_bin())
-        .collect::<Vec<&Target>>();
-    if !binaries.is_empty() {
-        write!(stdout, "bin: ")?;
-        for binary in binaries {
-            write!(stdout, "{cyan}{name}{reset}", name = binary.name())?;
-            write!(stdout, " ")?;
-        }
-        writeln!(stdout)?;
-    }
-    writeln!(stdout)?;
+    pretty_kind(package, stdout)?;
 
     pretty_deps(package, stdout)?;
 
@@ -154,6 +136,40 @@ fn pretty_description_and_links(
     if let Some(ref documentation) = metadata.documentation {
         write!(stdout, "Documentation: ")?;
         writeln!(stdout, "{cyan}{documentation}{reset}")?;
+        printed = true;
+    }
+
+    // Only print a newline if something was printed.
+    if printed {
+        writeln!(stdout)?;
+    }
+
+    Ok(())
+}
+
+fn pretty_kind(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+    let mut printed = false;
+
+    // Kind.
+    if let Some(library) = package.library() {
+        write!(stdout, "lib: ")?;
+        writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
+        printed = true;
+    }
+    let binaries = package
+        .targets()
+        .iter()
+        .filter(|t| t.is_bin())
+        .collect::<Vec<&Target>>();
+    if !binaries.is_empty() {
+        write!(stdout, "bin: ")?;
+        for binary in binaries {
+            write!(stdout, "{cyan}{name}{reset}", name = binary.name())?;
+            write!(stdout, " ")?;
+        }
+        writeln!(stdout)?;
         printed = true;
     }
 
