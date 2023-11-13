@@ -1,7 +1,10 @@
 use std::io::Write;
 
 use cargo::{
-    core::{dependency::DepKind, FeatureMap, Package, PackageId, Summary, Target},
+    core::{
+        dependency::DepKind, manifest::ManifestMetadata, FeatureMap, Package, PackageId, Summary,
+        Target,
+    },
     CargoResult,
 };
 
@@ -17,47 +20,10 @@ pub(super) fn pretty_view(
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
 
-    let yellow = YELLOW.render();
     let cyan = CYAN.render();
     let reset = anstyle::Reset.render();
 
-    // Basic information.
-    writeln!(stdout)?;
-    write!(
-        stdout,
-        "{yellow}{name}{reset}@{yellow}{version}{reset}",
-        name = package_id.name(),
-        version = package_id.version()
-    )?;
-    write!(stdout, " | ")?;
-    match metadata.license {
-        Some(ref license) => {
-            write!(stdout, "{yellow}{license}{reset}", license = license)?;
-        }
-        None => {
-            write!(stdout, "{yellow}No license{reset}")?;
-        }
-    }
-    write!(stdout, " | ")?;
-    write!(stdout, "deps: ")?;
-    let deps = package.dependencies().len();
-    write!(stdout, "{yellow}{deps}{reset}")?;
-    write!(stdout, " | ")?;
-    write!(stdout, "versions: ")?;
-    write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
-    write!(stdout, " | ")?;
-    write!(stdout, "edition: ")?;
-    write!(
-        stdout,
-        "{yellow}{edition}{reset}",
-        edition = package.manifest().edition()
-    )?;
-    if let Some(rust_version) = &metadata.rust_version {
-        write!(stdout, " | ")?;
-        write!(stdout, "rust: ")?;
-        write!(stdout, "{yellow}{rust_version}{reset}")?;
-    }
-    writeln!(stdout)?;
+    pretty_basic_info(package, &package_id, metadata, summaries, stdout)?;
 
     // Keywords.
     if !metadata.keywords.is_empty() {
@@ -118,6 +84,63 @@ pub(super) fn pretty_view(
     pretty_features(summary.features(), stdout)?;
 
     pretty_authors(&metadata.authors, stdout)?;
+
+    Ok(())
+}
+
+fn pretty_basic_info(
+    package: &Package,
+    package_id: &PackageId,
+    metadata: &ManifestMetadata,
+    summaries: &[Summary],
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
+    let yellow = YELLOW.render();
+    let reset = anstyle::Reset.render();
+
+    // Basic information.
+    writeln!(stdout)?;
+    write!(
+        stdout,
+        "{yellow}{name}{reset}@{yellow}{version}{reset}",
+        name = package_id.name(),
+        version = package_id.version()
+    )?;
+    write!(stdout, " | ")?;
+    match metadata.license {
+        Some(ref license) => {
+            write!(stdout, "{yellow}{license}{reset}")?;
+        }
+        None => {
+            write!(stdout, "{yellow}No license{reset}")?;
+        }
+    }
+    write!(stdout, " | ")?;
+    write!(stdout, "deps: ")?;
+    let deps = package.dependencies().len();
+    write!(stdout, "{yellow}{deps}{reset}")?;
+    write!(stdout, " | ")?;
+    write!(stdout, "versions: ")?;
+    write!(
+        stdout,
+        "{yellow}{versions}{reset}",
+        versions = summaries.len()
+    )?;
+    write!(stdout, " | ")?;
+    write!(stdout, "edition: ")?;
+    write!(
+        stdout,
+        "{yellow}{edition}{reset}",
+        edition = package.manifest().edition()
+    )?;
+    if let Some(rust_version) = &metadata.rust_version {
+        write!(stdout, " | ")?;
+        write!(stdout, "rust: ")?;
+        write!(stdout, "{yellow}{rust_version}{reset}")?;
+    }
+
+    // Make sure there is a newline at the end.
+    writeln!(stdout)?;
 
     Ok(())
 }
