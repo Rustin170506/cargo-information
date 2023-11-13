@@ -36,28 +36,7 @@ pub(super) fn pretty_view(
         writeln!(stdout)?;
     }
 
-    // Description and links.
-    if let Some(ref description) = metadata.description {
-        writeln!(
-            stdout,
-            "{description}",
-            description = description.trim_end()
-        )?;
-        writeln!(stdout)?;
-    }
-    if let Some(ref homepage) = metadata.homepage {
-        write!(stdout, "Homepage: ")?;
-        writeln!(stdout, "{cyan}{homepage}{reset}")?;
-    }
-    if let Some(ref repository) = metadata.repository {
-        write!(stdout, "Repository: ")?;
-        writeln!(stdout, "{cyan}{repository}{reset}")?;
-    }
-    if let Some(ref documentation) = metadata.documentation {
-        write!(stdout, "Documentation: ")?;
-        writeln!(stdout, "{cyan}{documentation}{reset}")?;
-    }
-    writeln!(stdout)?;
+    pretty_description_and_links(metadata, stdout)?;
 
     // Kind.
     if let Some(library) = package.library() {
@@ -140,7 +119,48 @@ fn pretty_basic_info(
     }
 
     // Make sure there is a newline at the end.
-    writeln!(stdout)?;
+    writeln!(stdout, "\n")?;
+
+    Ok(())
+}
+
+fn pretty_description_and_links(
+    metadata: &ManifestMetadata,
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+    let mut printed = false;
+
+    // Description and links.
+    if let Some(ref description) = metadata.description {
+        writeln!(
+            stdout,
+            "{description}",
+            description = description.trim_end()
+        )?;
+        printed = true;
+    }
+    if let Some(ref homepage) = metadata.homepage {
+        write!(stdout, "Homepage: ")?;
+        writeln!(stdout, "{cyan}{homepage}{reset}")?;
+        printed = true;
+    }
+    if let Some(ref repository) = metadata.repository {
+        write!(stdout, "Repository: ")?;
+        writeln!(stdout, "{cyan}{repository}{reset}")?;
+        printed = true;
+    }
+    if let Some(ref documentation) = metadata.documentation {
+        write!(stdout, "Documentation: ")?;
+        writeln!(stdout, "{cyan}{documentation}{reset}")?;
+        printed = true;
+    }
+
+    // Only print a newline if something was printed.
+    if printed {
+        writeln!(stdout)?;
+    }
 
     Ok(())
 }
