@@ -1,7 +1,10 @@
 use std::io::Write;
 
 use cargo::{
-    core::{dependency::DepKind, FeatureMap, Package, PackageId, Summary, Target},
+    core::{
+        dependency::DepKind, manifest::ManifestMetadata, FeatureMap, Package, PackageId, Summary,
+        Target,
+    },
     CargoResult,
 };
 
@@ -17,8 +20,43 @@ pub(super) fn pretty_view(
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
 
-    let yellow = YELLOW.render();
     let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+
+    pretty_basic_info(package, &package_id, metadata, summaries, stdout)?;
+
+    // Keywords.
+    if !metadata.keywords.is_empty() {
+        write!(stdout, "keywords: ")?;
+        writeln!(
+            stdout,
+            "{cyan}#{keywords}{reset}",
+            keywords = metadata.keywords.join("  #")
+        )?;
+        writeln!(stdout)?;
+    }
+
+    pretty_description_and_links(metadata, stdout)?;
+
+    pretty_kind(package, stdout)?;
+
+    pretty_deps(package, stdout)?;
+
+    pretty_features(summary.features(), stdout)?;
+
+    pretty_authors(&metadata.authors, stdout)?;
+
+    Ok(())
+}
+
+fn pretty_basic_info(
+    package: &Package,
+    package_id: &PackageId,
+    metadata: &ManifestMetadata,
+    summaries: &[Summary],
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
+    let yellow = YELLOW.render();
     let reset = anstyle::Reset.render();
 
     // Basic information.
@@ -32,7 +70,7 @@ pub(super) fn pretty_view(
     write!(stdout, " | ")?;
     match metadata.license {
         Some(ref license) => {
-            write!(stdout, "{yellow}{license}{reset}", license = license)?;
+            write!(stdout, "{yellow}{license}{reset}")?;
         }
         None => {
             write!(stdout, "{yellow}No license{reset}")?;
@@ -44,7 +82,11 @@ pub(super) fn pretty_view(
     write!(stdout, "{yellow}{deps}{reset}")?;
     write!(stdout, " | ")?;
     write!(stdout, "versions: ")?;
-    write!(stdout, "{yellow}{len}{reset}", len = summaries.len())?;
+    write!(
+        stdout,
+        "{yellow}{versions}{reset}",
+        versions = summaries.len()
+    )?;
     write!(stdout, " | ")?;
     write!(stdout, "edition: ")?;
     write!(
@@ -57,18 +99,20 @@ pub(super) fn pretty_view(
         write!(stdout, "rust: ")?;
         write!(stdout, "{yellow}{rust_version}{reset}")?;
     }
-    writeln!(stdout)?;
 
-    // Keywords.
-    if !metadata.keywords.is_empty() {
-        write!(stdout, "keywords: ")?;
-        writeln!(
-            stdout,
-            "{cyan}#{keywords}{reset}",
-            keywords = metadata.keywords.join("  #")
-        )?;
-        writeln!(stdout)?;
-    }
+    // Make sure there is a newline at the end.
+    writeln!(stdout, "\n")?;
+
+    Ok(())
+}
+
+fn pretty_description_and_links(
+    metadata: &ManifestMetadata,
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+    let mut printed = false;
 
     // Description and links.
     if let Some(ref description) = metadata.description {
@@ -77,26 +121,42 @@ pub(super) fn pretty_view(
             "{description}",
             description = description.trim_end()
         )?;
-        writeln!(stdout)?;
+        printed = true;
     }
     if let Some(ref homepage) = metadata.homepage {
         write!(stdout, "Homepage: ")?;
         writeln!(stdout, "{cyan}{homepage}{reset}")?;
+        printed = true;
     }
     if let Some(ref repository) = metadata.repository {
         write!(stdout, "Repository: ")?;
         writeln!(stdout, "{cyan}{repository}{reset}")?;
+        printed = true;
     }
     if let Some(ref documentation) = metadata.documentation {
         write!(stdout, "Documentation: ")?;
         writeln!(stdout, "{cyan}{documentation}{reset}")?;
+        printed = true;
     }
-    writeln!(stdout)?;
+
+    // Only print a newline if something was printed.
+    if printed {
+        writeln!(stdout)?;
+    }
+
+    Ok(())
+}
+
+fn pretty_kind(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
+    let cyan = CYAN.render();
+    let reset = anstyle::Reset.render();
+    let mut printed = false;
 
     // Kind.
     if let Some(library) = package.library() {
         write!(stdout, "lib: ")?;
         writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
+        printed = true;
     }
     let binaries = package
         .targets()
@@ -110,14 +170,13 @@ pub(super) fn pretty_view(
             write!(stdout, " ")?;
         }
         writeln!(stdout)?;
+        printed = true;
     }
-    writeln!(stdout)?;
 
-    pretty_deps(package, stdout)?;
-
-    pretty_features(summary.features(), stdout)?;
-
-    pretty_authors(&metadata.authors, stdout)?;
+    // Only print a newline if something was printed.
+    if printed {
+        writeln!(stdout)?;
+    }
 
     Ok(())
 }
@@ -276,6 +335,7 @@ fn pretty_authors(authors: &[String], stdout: &mut dyn Write) -> CargoResult<()>
         for author in authors {
             writeln!(stdout, "- {yellow}{author}{reset}")?;
         }
+        writeln!(stdout)?;
     }
 
     Ok(())
