@@ -1,14 +1,11 @@
 use std::io::Write;
 
 use cargo::{
-    core::{
-        dependency::DepKind, manifest::ManifestMetadata, FeatureMap, Package, PackageId, Summary,
-        Target,
-    },
+    core::{dependency::DepKind, Dependency, FeatureMap, Package, PackageId, Summary},
     CargoResult,
 };
 
-use super::style::{CYAN, YELLOW};
+use super::style::{ERROR, HEADER, LITERAL, NOP, NOTE, WARN};
 
 // Pretty print the package information.
 pub(super) fn pretty_view(
@@ -19,244 +16,120 @@ pub(super) fn pretty_view(
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
-
-    let cyan = CYAN.render();
+    let header = HEADER.render();
+    let error = ERROR.render();
+    let warn = WARN.render();
+    let note = NOTE.render();
     let reset = anstyle::Reset.render();
 
-    pretty_basic_info(package, &package_id, metadata, summaries, stdout)?;
-
-    // Keywords.
+    write!(stdout, "{header}{}{reset}", package_id.name())?;
     if !metadata.keywords.is_empty() {
-        write!(stdout, "keywords: ")?;
-        writeln!(
-            stdout,
-            "{cyan}#{keywords}{reset}",
-            keywords = metadata.keywords.join("  #")
-        )?;
-        writeln!(stdout)?;
+        write!(stdout, " {note}#{}{reset}", metadata.keywords.join(" #"))?;
     }
-
-    pretty_description_and_links(metadata, stdout)?;
-
-    pretty_kind(package, stdout)?;
+    writeln!(stdout)?;
+    if let Some(ref description) = metadata.description {
+        writeln!(stdout, "{}", description.trim_end())?;
+    }
+    write!(stdout, "{header}version:{reset} {}", package_id.version())?;
+    if let Some(latest) = summaries.iter().max_by_key(|s| s.version()) {
+        if latest.version() != package_id.version() {
+            write!(stdout, " {warn}(latest {}){reset}", latest.version())?;
+        }
+    }
+    writeln!(stdout)?;
+    writeln!(
+        stdout,
+        "{header}license:{reset} {}",
+        metadata
+            .license
+            .clone()
+            .unwrap_or_else(|| format!("{error}unknown{reset}"))
+    )?;
+    // TODO: color MSRV as a warning if newer than either the "workspace" MSRV or `rustc --version`
+    writeln!(
+        stdout,
+        "{header}rust-version:{reset} {}",
+        metadata
+            .rust_version
+            .as_ref()
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| format!("{warn}unknown{reset}"))
+    )?;
+    if let Some(ref link) = metadata.documentation.clone().or_else(|| {
+        summary.source_id().is_crates_io().then(|| {
+            format!(
+                "https://docs.rs/{name}/{version}",
+                name = package_id.name(),
+                version = package_id.version()
+            )
+        })
+    }) {
+        writeln!(stdout, "{header}documentation:{reset} {link}")?;
+    }
+    if let Some(ref link) = metadata.homepage {
+        writeln!(stdout, "{header}homepage:{reset} {link}")?;
+    }
+    if let Some(ref link) = metadata.repository {
+        writeln!(stdout, "{header}repository:{reset} {link}")?;
+    }
 
     pretty_deps(package, stdout)?;
 
     pretty_features(summary.features(), stdout)?;
 
-    pretty_authors(&metadata.authors, stdout)?;
-
-    Ok(())
-}
-
-fn pretty_basic_info(
-    package: &Package,
-    package_id: &PackageId,
-    metadata: &ManifestMetadata,
-    summaries: &[Summary],
-    stdout: &mut dyn Write,
-) -> CargoResult<()> {
-    let yellow = YELLOW.render();
-    let reset = anstyle::Reset.render();
-
-    // Basic information.
-    writeln!(stdout)?;
-    write!(
-        stdout,
-        "{yellow}{name}{reset}@{yellow}{version}{reset}",
-        name = package_id.name(),
-        version = package_id.version()
-    )?;
-    write!(stdout, " | ")?;
-    match metadata.license {
-        Some(ref license) => {
-            write!(stdout, "{yellow}{license}{reset}")?;
-        }
-        None => {
-            write!(stdout, "{yellow}No license{reset}")?;
-        }
-    }
-    write!(stdout, " | ")?;
-    write!(stdout, "deps: ")?;
-    let deps = package.dependencies().len();
-    write!(stdout, "{yellow}{deps}{reset}")?;
-    write!(stdout, " | ")?;
-    write!(stdout, "versions: ")?;
-    write!(
-        stdout,
-        "{yellow}{versions}{reset}",
-        versions = summaries.len()
-    )?;
-    write!(stdout, " | ")?;
-    write!(stdout, "edition: ")?;
-    write!(
-        stdout,
-        "{yellow}{edition}{reset}",
-        edition = package.manifest().edition()
-    )?;
-    if let Some(rust_version) = &metadata.rust_version {
-        write!(stdout, " | ")?;
-        write!(stdout, "rust: ")?;
-        write!(stdout, "{yellow}{rust_version}{reset}")?;
-    }
-
-    // Make sure there is a newline at the end.
-    writeln!(stdout, "\n")?;
-
-    Ok(())
-}
-
-fn pretty_description_and_links(
-    metadata: &ManifestMetadata,
-    stdout: &mut dyn Write,
-) -> CargoResult<()> {
-    let cyan = CYAN.render();
-    let reset = anstyle::Reset.render();
-    let mut printed = false;
-
-    // Description and links.
-    if let Some(ref description) = metadata.description {
-        writeln!(
-            stdout,
-            "{description}",
-            description = description.trim_end()
-        )?;
-        printed = true;
-    }
-    if let Some(ref homepage) = metadata.homepage {
-        write!(stdout, "Homepage: ")?;
-        writeln!(stdout, "{cyan}{homepage}{reset}")?;
-        printed = true;
-    }
-    if let Some(ref repository) = metadata.repository {
-        write!(stdout, "Repository: ")?;
-        writeln!(stdout, "{cyan}{repository}{reset}")?;
-        printed = true;
-    }
-    if let Some(ref documentation) = metadata.documentation {
-        write!(stdout, "Documentation: ")?;
-        writeln!(stdout, "{cyan}{documentation}{reset}")?;
-        printed = true;
-    }
-
-    // Only print a newline if something was printed.
-    if printed {
-        writeln!(stdout)?;
-    }
-
-    Ok(())
-}
-
-fn pretty_kind(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
-    let cyan = CYAN.render();
-    let reset = anstyle::Reset.render();
-    let mut printed = false;
-
-    // Kind.
-    if let Some(library) = package.library() {
-        write!(stdout, "lib: ")?;
-        writeln!(stdout, "{cyan}{name}{reset}", name = library.name())?;
-        printed = true;
-    }
-    let binaries = package
-        .targets()
-        .iter()
-        .filter(|t| t.is_bin())
-        .collect::<Vec<&Target>>();
-    if !binaries.is_empty() {
-        write!(stdout, "bin: ")?;
-        for binary in binaries {
-            write!(stdout, "{cyan}{name}{reset}", name = binary.name())?;
-            write!(stdout, " ")?;
-        }
-        writeln!(stdout)?;
-        printed = true;
-    }
-
-    // Only print a newline if something was printed.
-    if printed {
-        writeln!(stdout)?;
-    }
-
     Ok(())
 }
 
 fn pretty_deps(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
-    let yellow = YELLOW.render();
+    let header = HEADER.render();
     let reset = anstyle::Reset.render();
 
     let dependencies = package
         .dependencies()
         .iter()
         .filter(|d| d.kind() == DepKind::Normal)
-        .map(|d| {
-            format!(
-                "{yellow}{name}{reset}: {version}",
-                name = d.package_name(),
-                version = d.version_req()
-            )
-        })
-        .collect::<Vec<String>>();
+        .collect::<Vec<_>>();
     if !dependencies.is_empty() {
-        writeln!(stdout, "dependencies:")?;
+        writeln!(stdout, "{header}dependencies:{reset}")?;
         print_deps(dependencies, stdout)?;
-    }
-
-    let dev_dependencies = package
-        .dependencies()
-        .iter()
-        .filter(|d| d.kind() == DepKind::Development)
-        .map(|d| {
-            format!(
-                "{yellow}{name}{reset}: {version}",
-                name = d.package_name(),
-                version = d.version_req()
-            )
-        })
-        .collect::<Vec<String>>();
-    if !dev_dependencies.is_empty() {
-        writeln!(stdout, "dev-dependencies:")?;
-        print_deps(dev_dependencies, stdout)?;
     }
 
     let build_dependencies = package
         .dependencies()
         .iter()
         .filter(|d| d.kind() == DepKind::Build)
-        .map(|d| {
-            format!(
-                "{yellow}{name}{reset}: {version}",
-                name = d.package_name(),
-                version = d.version_req()
-            )
-        })
-        .collect::<Vec<String>>();
+        .collect::<Vec<_>>();
     if !build_dependencies.is_empty() {
-        writeln!(stdout, "build-dependencies:")?;
+        writeln!(stdout, "{header}build-dependencies:{reset}")?;
         print_deps(build_dependencies, stdout)?;
     }
 
     Ok(())
 }
 
-fn print_deps(dependencies: Vec<String>, stdout: &mut dyn Write) -> Result<(), anyhow::Error> {
-    let margin = dependencies.iter().map(|d| d.len()).max().unwrap_or(0) + 2;
-    let mut count = 0;
-    for dep in &dependencies {
-        if count + margin > 128 {
-            writeln!(stdout)?;
-            count = 0;
+fn print_deps(dependencies: Vec<&Dependency>, stdout: &mut dyn Write) -> Result<(), anyhow::Error> {
+    for dependency in dependencies {
+        let style = if dependency.is_optional() {
+            anstyle::Style::new() | anstyle::Effects::DIMMED
+        } else {
+            Default::default()
         }
-        write!(stdout, "{dep: <margin$}")?;
-        count += margin;
+        .render();
+        let reset = anstyle::Reset.render();
+        writeln!(
+            stdout,
+            "  {style}{}@{}{reset}",
+            dependency.package_name(),
+            dependency.version_req()
+        )?;
     }
-    writeln!(stdout, "\n")?;
     Ok(())
 }
 
 fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult<()> {
-    let yellow = YELLOW.render();
-    let cyan = CYAN.render();
+    let header = HEADER.render();
+    let enabled = LITERAL.render();
+    let disabled = NOP.render();
     let reset = anstyle::Reset.render();
 
     // If there are no features, return early.
@@ -269,7 +142,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         return Ok(());
     }
 
-    writeln!(stdout, "features:")?;
+    writeln!(stdout, "{header}features:{reset}")?;
 
     // Find the default features.
     const DEFAULT_FEATURE_NAME: &str = "default";
@@ -278,17 +151,14 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         .find(|(name, _)| name.as_str() == DEFAULT_FEATURE_NAME)
         .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>());
     if default_features.is_some() {
-        write!(stdout, "{cyan}")?;
-        write!(stdout, "{DEFAULT_FEATURE_NAME: <margin$}")?;
-        write!(stdout, "{reset} = ")?;
         writeln!(
             stdout,
-            "[{features}]",
+            "  {enabled}{DEFAULT_FEATURE_NAME: <margin$}{reset} = [{features}]",
             features = default_features
                 .as_ref()
                 .unwrap()
                 .iter()
-                .map(|s| format!("{yellow}{s}{reset}"))
+                .map(|s| format!("{enabled}{s}{reset}"))
                 .collect::<Vec<String>>()
                 .join(", ")
         )?;
@@ -299,21 +169,19 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
             continue;
         }
         // If the feature is a default feature, color it yellow.
-        if default_features.is_some()
+        let style = if default_features.is_some()
             && default_features
                 .as_ref()
                 .unwrap()
                 .contains(&name.to_string())
         {
-            write!(stdout, "{yellow}")?;
-            write!(stdout, "{name: <margin$}")?;
-            write!(stdout, "{reset} = ")?;
+            enabled
         } else {
-            write!(stdout, "{name: <margin$} = ")?;
-        }
+            disabled
+        };
         writeln!(
             stdout,
-            "[{features}]",
+            "  {style}{name: <margin$}{reset} = [{features}]",
             features = features
                 .iter()
                 .map(|f| f.to_string())
@@ -326,34 +194,24 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     Ok(())
 }
 
-fn pretty_authors(authors: &[String], stdout: &mut dyn Write) -> CargoResult<()> {
-    let yellow = YELLOW.render();
-    let reset = anstyle::Reset.render();
-
-    if !authors.is_empty() {
-        writeln!(stdout, "authors:")?;
-        for author in authors {
-            writeln!(stdout, "- {yellow}{author}{reset}")?;
-        }
-        writeln!(stdout)?;
-    }
-
-    Ok(())
-}
-
 // Suggest the cargo tree command to view the dependency tree.
 pub(super) fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
-    let cyan = CYAN.render();
+    let literal = LITERAL.render();
+    let reset = anstyle::Reset.render();
+
+    note(format_args!(
+        "to see how you depend on {name}, run {literal}`cargo tree --package {name}@{version} --invert`{reset}",
+        name = package_id.name(),
+        version = package_id.version(),
+    ), stdout)
+}
+
+pub(super) fn note(msg: impl std::fmt::Display, stdout: &mut dyn Write) -> CargoResult<()> {
+    let note = NOTE.render();
     let bold = (anstyle::Style::new() | anstyle::Effects::BOLD).render();
     let reset = anstyle::Reset.render();
 
-    writeln!(
-        stdout,
-        "{cyan}note{reset}{bold}:{reset} This package is from current workspace. \
-        You can use {cyan}`cargo tree --package {name}@{version} --invert`{reset} to view the dependency tree.",
-        name = package_id.name(),
-        version = package_id.version(),
-    )?;
+    writeln!(stdout, "{note}note{reset}{bold}:{reset} {msg}",)?;
 
     Ok(())
 }

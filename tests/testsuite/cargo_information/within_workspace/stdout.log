@@ -1,6 +1,6 @@
-
-my-package@0.1.1+my-package | No license | deps: 0 | versions: 7 | edition: 2015
-
-lib: my-package
-
-note: This package is from current workspace. You can use `cargo tree --package my-package@0.1.1+my-package --invert` to view the dependency tree.
+my-package
+version: 0.1.1+my-package (latest 99999.0.0+my-package)
+license: unknown
+rust-version: unknown
+documentation: https://docs.rs/my-package/0.1.1+my-package
+note: to see how you depend on my-package, run `cargo tree --package my-package@0.1.1+my-package --invert`
