@@ -73,9 +73,9 @@ pub(super) fn pretty_view(
         writeln!(stdout, "{header}repository:{reset} {link}")?;
     }
 
-    pretty_deps(package, stdout)?;
-
     pretty_features(summary.features(), stdout)?;
+
+    pretty_deps(package, stdout)?;
 
     Ok(())
 }
@@ -189,7 +189,6 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
                 .join(", ")
         )?;
     }
-    writeln!(stdout)?;
 
     Ok(())
 }
