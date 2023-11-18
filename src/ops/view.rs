@@ -144,50 +144,55 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
 
     writeln!(stdout, "{header}features:{reset}")?;
 
-    // Find the default features.
-    const DEFAULT_FEATURE_NAME: &str = "default";
-    let default_features = &features
-        .iter()
-        .find(|(name, _)| name.as_str() == DEFAULT_FEATURE_NAME)
-        .map(|f| f.1.iter().map(|f| f.to_string()).collect::<Vec<String>>());
-    if default_features.is_some() {
-        writeln!(
-            stdout,
-            "  {enabled}{DEFAULT_FEATURE_NAME: <margin$}{reset} = [{features}]",
-            features = default_features
-                .as_ref()
-                .unwrap()
-                .iter()
-                .map(|s| format!("{enabled}{s}{reset}"))
-                .collect::<Vec<String>>()
-                .join(", ")
-        )?;
+    let default_feature = cargo::util::interning::InternedString::new("default");
+    let mut root_activated = Vec::new();
+    if features.iter().any(|(name, _)| *name == default_feature) {
+        root_activated.push(default_feature);
     }
 
-    for (name, features) in features.iter() {
-        if name.as_str() == DEFAULT_FEATURE_NAME {
-            continue;
+    let mut remaining = features.clone();
+    for root in root_activated {
+        let mut activated = vec![root];
+        while let Some(current) = activated.pop() {
+            let Some(current_activated) = remaining.remove(&current) else {
+                continue;
+            };
+            writeln!(
+                stdout,
+                "  {enabled}{current: <margin$}{reset} = [{features}]",
+                features = current_activated
+                    .iter()
+                    .map(|s| format!("{enabled}{s}{reset}"))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+            activated.extend(current_activated.iter().rev().filter_map(|f| match f {
+                cargo::core::FeatureValue::Feature(name) => Some(name),
+                cargo::core::FeatureValue::Dep { .. }
+                | cargo::core::FeatureValue::DepFeature { .. } => None,
+            }));
         }
-        // If the feature is a default feature, color it yellow.
-        let style = if default_features.is_some()
-            && default_features
-                .as_ref()
-                .unwrap()
-                .contains(&name.to_string())
-        {
-            enabled
-        } else {
-            disabled
+    }
+
+    let mut activated = remaining.keys().rev().cloned().collect::<Vec<_>>();
+    while let Some(current) = activated.pop() {
+        let Some(current_activated) = remaining.remove(&current) else {
+            continue;
         };
         writeln!(
             stdout,
-            "  {style}{name: <margin$}{reset} = [{features}]",
-            features = features
+            "  {disabled}{current: <margin$}{reset} = [{features}]",
+            features = current_activated
                 .iter()
-                .map(|f| f.to_string())
+                .map(|s| format!("{disabled}{s}{reset}"))
                 .collect::<Vec<String>>()
                 .join(", ")
         )?;
+        activated.extend(current_activated.iter().rev().filter_map(|f| match f {
+            cargo::core::FeatureValue::Feature(name) => Some(name),
+            cargo::core::FeatureValue::Dep { .. }
+            | cargo::core::FeatureValue::DepFeature { .. } => None,
+        }));
     }
 
     Ok(())
