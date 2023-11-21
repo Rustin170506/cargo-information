@@ -11,15 +11,15 @@ repository = "https://github.com/hi-rustin/cargo-information"
 [dependencies]
 anstyle = "1.0.4"
 anyhow = "1.0.75"
-cargo.git = "https://github.com/rust-lang/cargo"
+cargo = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
 cargo-util = "0.2.6"
 clap = "4.4.6"
 color-print = "0.3.5"
 
 
 [dev-dependencies]
-cargo-test-macro.git = "https://github.com/rust-lang/cargo"
-cargo-test-support.git = "https://github.com/rust-lang/cargo"
+cargo-test-macro = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
+cargo-test-support = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
 snapbox = "0.4.14"
 
 [[bin]]
