@@ -1,5 +1,5 @@
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, PackageId, Registry, SourceId, Workspace};
+use cargo::core::{Dependency, PackageId, Registry, SourceId, Summary, Workspace};
 use cargo::sources::source::QueryKind;
 use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
@@ -89,6 +89,7 @@ fn query_and_pretty_view(
     let mut shell = config.shell();
     let stdout = shell.out();
 
+    let summaries: Vec<Summary> = summaries.iter().map(|s| s.as_summary().clone()).collect();
     pretty_view(package, &summaries, stdout)?;
 
     // Suggest the cargo tree command if the package is from workspace.

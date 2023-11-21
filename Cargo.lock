@@ -9,6 +9,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
+name = "ahash"
+version = "0.8.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91429305e9f0a25f6205c5b8e0d2db09e0708a7a6df0f42212bb56c32c8ac97a"
+dependencies = [
+ "cfg-if",
+ "once_cell",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16,6 +28,12 @@ checksum = "b2969dcb958b36655471fc61f7e416fa76033bdd4bfed0678d8fee1e2d07a1f0"
 dependencies = [
  "memchr",
 ]
+
+[[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
 
 [[package]]
 name = "anstream"
@@ -171,8 +189,8 @@ checksum = "a3e368af43e418a04d52505cf3dbc23dda4e3407ae2fa99fd0e4f308ce546acc"
 
 [[package]]
 name = "cargo"
-version = "0.76.0"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.77.0"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "anstream",
  "anstyle",
@@ -184,7 +202,7 @@ dependencies = [
  "cargo-credential-macos-keychain",
  "cargo-credential-wincred",
  "cargo-platform",
- "cargo-util 0.2.8",
+ "cargo-util 0.2.9",
  "clap",
  "color-print",
  "crates-io",
@@ -217,6 +235,8 @@ dependencies = [
  "pathdiff",
  "pulldown-cmark",
  "rand",
+ "regex",
+ "rusqlite",
  "rustfix",
  "semver",
  "serde",
@@ -226,6 +246,7 @@ dependencies = [
  "serde_json",
  "sha1",
  "shell-escape",
+ "supports-hyperlinks",
  "syn 2.0.38",
  "tar",
  "tempfile",
@@ -244,8 +265,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-credential"
-version = "0.4.1"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.4.2"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "anyhow",
  "libc",
@@ -258,8 +279,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-credential-libsecret"
-version = "0.3.3"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.3.4"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "anyhow",
  "cargo-credential",
@@ -268,8 +289,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-credential-macos-keychain"
-version = "0.3.2"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.3.3"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "cargo-credential",
  "security-framework",
@@ -277,8 +298,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-credential-wincred"
-version = "0.3.2"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.3.3"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "cargo-credential",
  "windows-sys",
@@ -301,8 +322,8 @@ dependencies = [
 
 [[package]]
 name = "cargo-platform"
-version = "0.1.6"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.1.7"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "serde",
 ]
@@ -310,18 +331,18 @@ dependencies = [
 [[package]]
 name = "cargo-test-macro"
 version = "0.1.0"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 
 [[package]]
 name = "cargo-test-support"
 version = "0.1.0"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "anstream",
  "anstyle",
  "anyhow",
  "cargo-test-macro",
- "cargo-util 0.2.8",
+ "cargo-util 0.2.9",
  "crates-io",
  "filetime",
  "flate2",
@@ -336,6 +357,7 @@ dependencies = [
  "time",
  "toml",
  "url",
+ "walkdir",
  "windows-sys",
 ]
 
@@ -363,13 +385,14 @@ dependencies = [
 
 [[package]]
 name = "cargo-util"
-version = "0.2.8"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.2.9"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "anyhow",
  "core-foundation",
  "filetime",
  "hex",
+ "ignore",
  "jobserver",
  "libc",
  "miow",
@@ -501,8 +524,8 @@ dependencies = [
 
 [[package]]
 name = "crates-io"
-version = "0.39.1"
-source = "git+https://github.com/rust-lang/cargo#42702651d2b16d9c6dd0bbb232d08d1da1d292eb"
+version = "0.39.2"
+source = "git+https://github.com/hi-rustin/cargo.git?branch=rustin-patch-cargo-test-support#4c07538b8f26120d19750ced66cf98140a33655e"
 dependencies = [
  "curl",
  "percent-encoding",
@@ -721,6 +744,18 @@ dependencies = [
  "libc",
  "windows-sys",
 ]
+
+[[package]]
+name = "fallible-iterator"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
+
+[[package]]
+name = "fallible-streaming-iterator"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7360491ce676a36bf9bb3c56c1aa791658183a54d2744120f27285738d90465a"
 
 [[package]]
 name = "faster-hex"
@@ -1606,6 +1641,25 @@ name = "hashbrown"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f93e7192158dbcda357bdec5fb5788eebf8bbac027f3f33e719d29135ae84156"
+dependencies = [
+ "ahash",
+ "allocator-api2",
+]
+
+[[package]]
+name = "hashlink"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8094feaf31ff591f651a2664fb9cfd92bba7a60ce3197265e9482ebe753c8f7"
+dependencies = [
+ "hashbrown",
+]
+
+[[package]]
+name = "hermit-abi"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "hex"
@@ -1707,6 +1761,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "is-terminal"
+version = "0.4.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
+dependencies = [
+ "hermit-abi",
+ "rustix",
+ "windows-sys",
+]
+
+[[package]]
 name = "itertools"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1798,6 +1863,17 @@ checksum = "4fae956c192dadcdb5dace96db71fa0b827333cce7c7b38dc71446f024d8a340"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "libsqlite3-sys"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afc22eff61b133b115c6e8c74e818c628d6d5e7a502afea6f64dee076dd94326"
+dependencies = [
+ "cc",
+ "pkg-config",
+ "vcpkg",
 ]
 
 [[package]]
@@ -2302,6 +2378,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rusqlite"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "549b9d036d571d42e6e85d1c1425e2ac83491075078ca9a15be021c56b1641f2"
+dependencies = [
+ "bitflags 2.4.1",
+ "fallible-iterator",
+ "fallible-streaming-iterator",
+ "hashlink",
+ "libsqlite3-sys",
+ "smallvec",
+]
+
+[[package]]
 name = "rustfix"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2610,6 +2700,15 @@ name = "subtle"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
+
+[[package]]
+name = "supports-hyperlinks"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f84231692eb0d4d41e4cdd0cabfdd2e6cd9e255e65f80c9aa7c98dd502b4233d"
+dependencies = [
+ "is-terminal",
+]
 
 [[package]]
 name = "syn"
@@ -3122,6 +3221,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "829846f3e3db426d4cee4510841b71a8e58aa2a76b1132579487ae430ccd9c7b"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "zerocopy"
+version = "0.7.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e97e415490559a91254a2979b4829267a57d2fcd741a98eee8b722fb57289aa0"
+dependencies = [
+ "zerocopy-derive",
+]
+
+[[package]]
+name = "zerocopy-derive"
+version = "0.7.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd7e48ccf166952882ca8bd778a43502c64f33bf94c12ebe2a7f08e5a0f6689f"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.38",
 ]
 
 [[package]]

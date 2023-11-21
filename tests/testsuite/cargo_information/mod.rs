@@ -1,4 +1,5 @@
 mod basic;
+mod features;
 mod help;
 mod not_found;
 mod with_frozen_outside_workspace;
