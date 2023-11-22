@@ -7,18 +7,40 @@ use cargo_test_support::{
 #[cargo_test]
 fn case() {
     cargo_test_support::registry::init();
-    for ver in [
-        "0.1.1+my-package",
-        "0.2.0+my-package",
-        "0.2.3+my-package",
-        "0.4.1+my-package",
-        "20.0.0+my-package",
-        "99999.0.0+my-package",
-        "99999.0.0-alpha.1+my-package",
-    ] {
-        cargo_test_support::registry::Package::new("my-package", ver).publish();
-    }
+    cargo_test_support::registry::Package::new("my-package", "0.1.0")
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            name = "my-package"
+            version = "0.1.0"
+            description = "A package for testing"
+            repository = "https://github.com/hi-rustin/cargo-infromation"
+            license = "MIT"
+            edition = "2018"
+            rust-version = "1.50.0"
+            keywords = ["foo", "bar", "baz"]
 
+            [features]
+            default = ["feature1"]
+            feature1 = []
+            feature2 = []
+
+            [dependencies]
+            foo = "0.1.0"
+            bar = "0.2.0"
+            baz = { version = "0.3.0", optional = true }
+
+            [[bin]]
+            name = "my_bin"
+
+            [lib]
+            name = "my_lib"
+            "#,
+        )
+        .file("src/bin/my_bin.rs", "")
+        .file("src/lib.rs", "")
+        .publish();
     snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("info"))
         .with_assert(compare::assert_ui())
         .test_env()
