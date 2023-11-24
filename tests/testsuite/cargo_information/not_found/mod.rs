@@ -12,7 +12,6 @@ fn case() {
 
     cargo_info()
         .arg("unknown")
-        .arg("--color=never")
         .current_dir(cwd)
         .assert()
         .failure()

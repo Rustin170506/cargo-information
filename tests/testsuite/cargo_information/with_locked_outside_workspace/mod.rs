@@ -20,7 +20,6 @@ fn case() {
 
     cargo_info()
         .arg("my-package")
-        .arg("--color=never")
         .arg("--locked")
         .assert()
         .failure()

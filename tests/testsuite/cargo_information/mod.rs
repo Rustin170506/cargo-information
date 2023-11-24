@@ -18,4 +18,5 @@ pub(crate) fn cargo_info() -> snapbox::cmd::Command {
         .with_assert(compare::assert_ui())
         .test_env()
         .arg("info")
+        .arg("--color=never")
 }

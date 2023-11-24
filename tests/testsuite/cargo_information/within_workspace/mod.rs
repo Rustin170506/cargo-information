@@ -24,7 +24,6 @@ fn case() {
 
     cargo_info()
         .arg("my-package")
-        .arg("--color=never")
         .current_dir(cwd)
         .assert()
         .success()
