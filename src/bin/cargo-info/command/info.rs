@@ -2,6 +2,13 @@ use cargo::util::command_prelude::*;
 use cargo_information::ops;
 
 pub fn cli() -> Command {
+    Command::new("cargo-info")
+        .bin_name("cargo")
+        .subcommand_required(true)
+        .subcommand(info_subcommand())
+}
+
+fn info_subcommand() -> Command {
     Command::new("info")
         .about("Display info about a package in the registry")
         .arg(Arg::new("pkgid").required(true).value_name("SPEC"))
