@@ -1,6 +1,6 @@
 Display info about a package in the registry
 
-Usage: cargo-info[EXE] [OPTIONS] <SPEC>
+Usage: cargo info [OPTIONS] <SPEC>
 
 Arguments:
   <SPEC>  

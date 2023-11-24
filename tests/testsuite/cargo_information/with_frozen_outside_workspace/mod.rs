@@ -1,8 +1,7 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{
-    compare::{self},
-    curr_dir, TestEnv,
-};
+use cargo_test_support::curr_dir;
+
+use super::cargo_info;
 
 #[cargo_test]
 fn case() {
@@ -19,9 +18,7 @@ fn case() {
         cargo_test_support::registry::Package::new("my-package", ver).publish();
     }
 
-    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
-        .with_assert(compare::assert_ui())
-        .test_env()
+    cargo_info()
         .arg("my-package")
         .arg("--color=never")
         .arg("--frozen")
