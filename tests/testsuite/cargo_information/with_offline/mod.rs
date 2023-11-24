@@ -19,7 +19,7 @@ fn case() {
         cargo_test_support::registry::Package::new("my-package", ver).publish();
     }
 
-    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("info"))
+    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
         .with_assert(compare::assert_ui())
         .test_env()
         .arg("my-package")

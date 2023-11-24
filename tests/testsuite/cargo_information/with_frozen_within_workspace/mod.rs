@@ -20,7 +20,7 @@ fn case() {
     let project_root = project.root();
     let cwd = &project_root;
 
-    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("info"))
+    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
         .with_assert(assert_ui())
         .test_env()
         .arg("unknown")
