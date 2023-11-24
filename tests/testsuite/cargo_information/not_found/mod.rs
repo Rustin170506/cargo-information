@@ -1,5 +1,7 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{compare::assert_ui, curr_dir, Project, TestEnv};
+use cargo_test_support::{compare::assert_ui, curr_dir, Project};
+
+use super::cargo_info;
 
 #[cargo_test]
 fn case() {
@@ -8,11 +10,8 @@ fn case() {
     let project_root = project.root();
     let cwd = &project_root;
 
-    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
-        .with_assert(assert_ui())
-        .test_env()
+    cargo_info()
         .arg("unknown")
-        .arg("--color=never")
         .current_dir(cwd)
         .assert()
         .failure()
