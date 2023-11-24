@@ -5,7 +5,7 @@ use cargo_test_support::prelude::*;
 
 #[cargo_test]
 fn case() {
-    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("info"))
+    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
         .with_assert(compare::assert_ui())
         .test_env()
         .arg("--help")

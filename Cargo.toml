@@ -23,4 +23,4 @@ cargo-test-support = { git = "https://github.com/hi-rustin/cargo.git", branch = 
 snapbox = "0.4.14"
 
 [[bin]]
-name = "info"
+name = "cargo-info"
