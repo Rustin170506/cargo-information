@@ -309,14 +309,12 @@ dependencies = [
 name = "cargo-information"
 version = "0.1.0"
 dependencies = [
- "anstyle",
  "anyhow",
  "cargo",
  "cargo-test-macro",
  "cargo-test-support",
  "cargo-util 0.2.7",
  "clap",
- "color-print",
  "snapbox",
 ]
 

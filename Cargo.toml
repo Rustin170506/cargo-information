@@ -13,8 +13,6 @@ anyhow = "1.0.75"
 cargo = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-util = "0.2.7"
 clap = "4.4.8"
-color-print = "0.3.5"
-
 
 [dev-dependencies]
 cargo-test-macro = { git = "https://github.com/rust-lang/cargo.git" }
