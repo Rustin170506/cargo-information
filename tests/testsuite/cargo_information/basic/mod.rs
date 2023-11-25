@@ -15,6 +15,7 @@ fn case() {
             version = "0.1.0"
             description = "A package for testing"
             repository = "https://github.com/hi-rustin/cargo-infromation"
+            documentation = "https://docs.rs/my-package/0.1.0"
             license = "MIT"
             edition = "2018"
             rust-version = "1.50.0"
@@ -42,6 +43,7 @@ fn case() {
         .publish();
     cargo_info()
         .arg("my-package")
+        .arg("--registry=dummy-registry")
         .assert()
         .success()
         .stdout_matches_path(curr_dir!().join("stdout.log"))
