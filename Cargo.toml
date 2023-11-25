@@ -6,20 +6,18 @@ license = "MIT"
 description = "A cargo subcommand to show information about crates."
 repository = "https://github.com/hi-rustin/cargo-information"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 anstyle = "1.0.4"
 anyhow = "1.0.75"
-cargo = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
+cargo = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-util = "0.2.6"
 clap = "4.4.6"
 color-print = "0.3.5"
 
 
 [dev-dependencies]
-cargo-test-macro = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
-cargo-test-support = { git = "https://github.com/hi-rustin/cargo.git", branch = "rustin-patch-cargo-test-support" }
+cargo-test-macro = { git = "https://github.com/rust-lang/cargo.git" }
+cargo-test-support = { git = "https://github.com/rust-lang/cargo.git" }
 snapbox = "0.4.14"
 
 [[bin]]
