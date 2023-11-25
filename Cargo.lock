@@ -314,7 +314,7 @@ dependencies = [
  "cargo",
  "cargo-test-macro",
  "cargo-test-support",
- "cargo-util 0.2.6",
+ "cargo-util 0.2.7",
  "clap",
  "color-print",
  "snapbox",
@@ -363,9 +363,9 @@ dependencies = [
 
 [[package]]
 name = "cargo-util"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77042b5b585f701f1cfb4b6b12ebc02b9b0cefbc8dcce235906b6bf376d4245d"
+checksum = "ce8c7905217be3315c7adb1f195a74fc38f586eefd8adfe398921eee8472d348"
 dependencies = [
  "anyhow",
  "core-foundation",
