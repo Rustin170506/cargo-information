@@ -1,2 +1,2 @@
     Updating `dummy-registry` index
-error: could not find `unknown` in registry `https://github.com/rust-lang/crates.io-index`
+error: could not find `unknown` in registry `[ROOTURL]/registry`

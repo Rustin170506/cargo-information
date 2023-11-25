@@ -7,6 +7,7 @@ use super::cargo_info;
 fn case() {
     cargo_info()
         .arg("--help")
+        .arg("--registry=dummy-registry")
         .assert()
         .success()
         .stdout_matches_path(curr_dir!().join("stdout.log"))

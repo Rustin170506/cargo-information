@@ -2,7 +2,6 @@ my-package
 version: 0.1.1
 license: unknown
 rust-version: unknown
-documentation: https://docs.rs/my-package/0.1.1
 features:
   default  = [feature1, feature2]
   feature1 = []

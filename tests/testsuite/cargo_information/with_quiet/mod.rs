@@ -21,6 +21,7 @@ fn case() {
     cargo_info()
         .arg("my-package")
         .arg("--quiet")
+        .arg("--registry=dummy-registry")
         .assert()
         .success()
         .stdout_matches_path(curr_dir!().join("stdout.log"))

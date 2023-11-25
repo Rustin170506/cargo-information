@@ -25,6 +25,7 @@ fn case() {
     cargo_info()
         .arg("unknown")
         .arg("--locked")
+        .arg("--registry=dummy-registry")
         .current_dir(cwd)
         .assert()
         .failure()

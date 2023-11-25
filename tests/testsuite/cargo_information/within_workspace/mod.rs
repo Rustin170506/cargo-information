@@ -24,6 +24,7 @@ fn case() {
 
     cargo_info()
         .arg("my-package")
+        .arg("--registry=dummy-registry")
         .current_dir(cwd)
         .assert()
         .success()
