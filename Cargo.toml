@@ -5,6 +5,7 @@ edition = "2021"
 license = "MIT"
 description = "A cargo subcommand to show information about crates."
 repository = "https://github.com/hi-rustin/cargo-information"
+rust-version = "1.73"
 
 [dependencies]
 anstyle = "1.0.4"
