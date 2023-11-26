@@ -11,6 +11,7 @@ use super::style::{ERROR, HEADER, LITERAL, NOP, NOTE, WARN};
 pub(super) fn pretty_view(
     package: &Package,
     summaries: &[Summary],
+    owners: &Option<Vec<String>>,
     stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
@@ -76,6 +77,10 @@ pub(super) fn pretty_view(
     pretty_features(summary.features(), stdout)?;
 
     pretty_deps(package, stdout)?;
+
+    if let Some(owners) = owners {
+        pretty_owners(owners, stdout)?;
+    }
 
     Ok(())
 }
@@ -211,6 +216,20 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
             cargo::core::FeatureValue::Dep { .. }
             | cargo::core::FeatureValue::DepFeature { .. } => None,
         }));
+    }
+
+    Ok(())
+}
+
+fn pretty_owners(owners: &Vec<String>, stdout: &mut dyn Write) -> CargoResult<()> {
+    let header = HEADER.render();
+    let reset = anstyle::Reset.render();
+
+    if !owners.is_empty() {
+        writeln!(stdout, "{header}owners:{reset}",)?;
+        for owner in owners {
+            writeln!(stdout, "  {}", owner)?;
+        }
     }
 
     Ok(())

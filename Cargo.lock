@@ -197,7 +197,7 @@ dependencies = [
  "anyhow",
  "base64",
  "bytesize",
- "cargo-credential 0.4.2",
+ "cargo-credential",
  "cargo-credential-libsecret",
  "cargo-credential-macos-keychain",
  "cargo-credential-wincred",
@@ -265,21 +265,6 @@ dependencies = [
 
 [[package]]
 name = "cargo-credential"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1eb63e2bf69272d1d7236a7d3083a75a8437c9ce69465a1665caa7c3a213d757"
-dependencies = [
- "anyhow",
- "libc",
- "serde",
- "serde_json",
- "thiserror",
- "time",
- "windows-sys",
-]
-
-[[package]]
-name = "cargo-credential"
 version = "0.4.2"
 source = "git+https://github.com/rust-lang/cargo.git#9b13310ca596020a737aaa47daa4ed9ff8898a2f"
 dependencies = [
@@ -298,7 +283,7 @@ version = "0.4.2"
 source = "git+https://github.com/rust-lang/cargo.git#9b13310ca596020a737aaa47daa4ed9ff8898a2f"
 dependencies = [
  "anyhow",
- "cargo-credential 0.4.2",
+ "cargo-credential",
  "libloading",
 ]
 
@@ -307,7 +292,7 @@ name = "cargo-credential-macos-keychain"
 version = "0.4.2"
 source = "git+https://github.com/rust-lang/cargo.git#9b13310ca596020a737aaa47daa4ed9ff8898a2f"
 dependencies = [
- "cargo-credential 0.4.2",
+ "cargo-credential",
  "security-framework",
 ]
 
@@ -316,7 +301,7 @@ name = "cargo-credential-wincred"
 version = "0.4.2"
 source = "git+https://github.com/rust-lang/cargo.git#9b13310ca596020a737aaa47daa4ed9ff8898a2f"
 dependencies = [
- "cargo-credential 0.4.2",
+ "cargo-credential",
  "windows-sys",
 ]
 
@@ -327,7 +312,7 @@ dependencies = [
  "anstyle",
  "anyhow",
  "cargo",
- "cargo-credential 0.4.1",
+ "cargo-credential",
  "cargo-test-macro",
  "cargo-test-support",
  "cargo-util 0.2.7",

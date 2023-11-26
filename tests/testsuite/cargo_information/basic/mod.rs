@@ -1,11 +1,11 @@
 use cargo_test_macro::cargo_test;
 use cargo_test_support::curr_dir;
 
-use super::cargo_info;
+use super::{cargo_info, init_registry_without_token};
 
 #[cargo_test]
 fn case() {
-    cargo_test_support::registry::init();
+    init_registry_without_token();
     cargo_test_support::registry::Package::new("my-package", "0.1.0")
         .file(
             "Cargo.toml",
