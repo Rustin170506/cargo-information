@@ -13,7 +13,7 @@ anyhow = "1.0.75"
 cargo = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-credential = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-util = "0.2.7"
-clap = "4.4.9"
+clap = "4.4.10"
 color-print = "0.3.5"
 crates-io = "0.39.0"
 
