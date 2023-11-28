@@ -35,7 +35,11 @@ pub fn info(spec: &str, config: &Config, reg_or_index: Option<RegistryOrIndex>) 
         }
     }
 
-    let source_ids = get_source_id(config, reg_or_index, package_id)?;
+    let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
+    // If we don't use the package's source, we need to query the package ID from the specified registry.
+    if !use_package_source_id {
+        package_id = None;
+    }
 
     query_and_pretty_view(spec, package_id, config, registry, source_ids)
 }
@@ -154,14 +158,34 @@ fn get_source_id(
     config: &Config,
     reg_or_index: Option<RegistryOrIndex>,
     package_id: Option<PackageId>,
-) -> CargoResult<RegistrySourceIds> {
-    let sid = match (&reg_or_index, package_id) {
-        (_, Some(package_id)) => package_id.source_id(),
-        (None, None) => SourceId::crates_io(config)?,
-        (Some(RegistryOrIndex::Index(url)), None) => SourceId::for_registry(url)?,
-        (Some(RegistryOrIndex::Registry(r)), None) => SourceId::alt_registry(config, r)?,
+) -> CargoResult<(bool, RegistrySourceIds)> {
+    let (use_package_source_id, sid) = match (&reg_or_index, package_id) {
+        (None, Some(package_id)) => (true, package_id.source_id()),
+        (None, None) => (false, SourceId::crates_io(config)?),
+        (Some(RegistryOrIndex::Index(url)), None) => (false, SourceId::for_registry(url)?),
+        (Some(RegistryOrIndex::Registry(r)), None) => (false, SourceId::alt_registry(config, r)?),
+        (Some(reg_or_index), Some(package_id)) => {
+            let sid = match reg_or_index {
+                RegistryOrIndex::Index(url) => SourceId::for_registry(url)?,
+                RegistryOrIndex::Registry(r) => SourceId::alt_registry(config, r)?,
+            };
+            let package_source_id = package_id.source_id();
+            // Same registry, use the package's source.
+            if sid == package_source_id {
+                (true, sid)
+            } else {
+                let pkg_source_replacement_sid = SourceConfigMap::new(config)?
+                    .load(package_source_id, &HashSet::new())?
+                    .replaced_source_id();
+                // Use the package's source if the specified registry is a replacement for the package's source.
+                if pkg_source_replacement_sid == sid {
+                    (true, package_source_id)
+                } else {
+                    (false, sid)
+                }
+            }
+        }
     };
-
     // Load source replacements that are built-in to Cargo.
     let builtin_replacement_sid = SourceConfigMap::empty(config)?
         .load(sid, &HashSet::new())?
@@ -178,10 +202,13 @@ fn get_source_id(
             bail!("crates-io is replaced with non-remote-registry source {replacement_sid};\ninclude `--registry crates-io` to use crates.io");
         }
     } else {
-        Ok(RegistrySourceIds {
-            original: sid,
-            replacement: builtin_replacement_sid,
-        })
+        Ok((
+            use_package_source_id,
+            RegistrySourceIds {
+                original: sid,
+                replacement: builtin_replacement_sid,
+            },
+        ))
     }
 }
 
