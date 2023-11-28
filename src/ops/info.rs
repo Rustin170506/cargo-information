@@ -180,7 +180,7 @@ fn get_source_id(
     } else {
         Ok(RegistrySourceIds {
             original: sid,
-            replacement: builtin_replacement_sid,
+            replacement: replacement_sid,
         })
     }
 }
