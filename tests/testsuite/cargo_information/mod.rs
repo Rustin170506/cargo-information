@@ -20,3 +20,11 @@ pub(crate) fn cargo_info() -> snapbox::cmd::Command {
         .arg("info")
         .arg("--color=never")
 }
+
+// Initialize the registry without a token.
+// Otherwise, it will try to list owners of the crate and fail.
+pub(crate) fn init_registry_without_token() {
+    let _reg = cargo_test_support::registry::RegistryBuilder::new()
+        .no_configure_token()
+        .build();
+}

@@ -1,14 +1,20 @@
 use std::collections::HashSet;
+use std::task::Poll;
 
-use anyhow::bail;
+use anyhow::{bail, Context as _};
 use cargo::core::registry::PackageRegistry;
 use cargo::core::{Dependency, PackageId, Registry, SourceId, Summary, Workspace};
 use cargo::ops::RegistryOrIndex;
-use cargo::sources::source::QueryKind;
-use cargo::sources::SourceConfigMap;
+use cargo::sources::source::{QueryKind, Source};
+use cargo::sources::{RegistrySource, SourceConfigMap};
+use cargo::util::auth::{auth_token, AuthorizationErrorReason};
 use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
+use cargo::util::network::http::http_handle;
 use cargo::{ops, CargoResult, Config};
+use cargo_credential::Operation;
+use crates_io::Registry as CratesIoRegistry;
+use crates_io::User;
 
 use super::view::{pretty_view, suggest_cargo_tree};
 
@@ -54,7 +60,6 @@ fn query_and_pretty_view(
             anyhow::bail!("the option `--frozen` can only be used within a workspace");
         }
     }
-
     // Query without version requirement to get all index summaries.
     let dep = Dependency::parse(spec, None, source_ids.original)?;
     let summaries = loop {
@@ -89,12 +94,11 @@ fn query_and_pretty_view(
 
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
-
+    let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
+    let summaries: Vec<Summary> = summaries.iter().map(|s| s.as_summary().clone()).collect();
     let mut shell = config.shell();
     let stdout = shell.out();
-
-    let summaries: Vec<Summary> = summaries.iter().map(|s| s.as_summary().clone()).collect();
-    pretty_view(package, &summaries, stdout)?;
+    pretty_view(package, &summaries, &owners, stdout)?;
 
     // Suggest the cargo tree command if the package is from workspace.
     if from_workspace {
@@ -102,6 +106,34 @@ fn query_and_pretty_view(
     }
 
     Ok(())
+}
+
+// Try to list the login and name of all owners of a crate.
+fn try_list_owners(
+    config: &Config,
+    source_ids: RegistrySourceIds,
+    package_name: &str,
+) -> CargoResult<Option<Vec<String>>> {
+    let registry = api_registry(config, source_ids)?;
+    match registry {
+        Some(mut registry) => {
+            let owners = registry.list_owners(package_name)?;
+            let names = owners.iter().map(get_username).collect();
+            Ok(Some(names))
+        }
+        None => Ok(None),
+    }
+}
+
+fn get_username(u: &User) -> String {
+    format!(
+        "{}{}",
+        u.login,
+        u.name
+            .as_ref()
+            .map(|name| format!(" ({})", name))
+            .unwrap_or_default(),
+    )
 }
 
 struct RegistrySourceIds {
@@ -115,7 +147,6 @@ struct RegistrySourceIds {
     ///
     /// User-defined source replacement is not applied.
     /// Note: This will be utilized when interfacing with the registry API.
-    #[allow(dead_code)]
     replacement: SourceId,
 }
 
@@ -152,4 +183,60 @@ fn get_source_id(
             replacement: builtin_replacement_sid,
         })
     }
+}
+
+// Try to get the crates.io registry which is used to access the registry API.
+// If the user is not logged in, the function will return None.
+fn api_registry(
+    config: &Config,
+    source_ids: RegistrySourceIds,
+) -> CargoResult<Option<CratesIoRegistry>> {
+    let cfg = {
+        let mut src = RegistrySource::remote(source_ids.replacement, &HashSet::new(), config)?;
+        let cfg = loop {
+            match src.config()? {
+                Poll::Pending => src
+                    .block_until_ready()
+                    .with_context(|| format!("failed to update {}", source_ids.replacement))?,
+                Poll::Ready(cfg) => break cfg,
+            }
+        };
+        cfg.expect("remote registries must have config")
+    };
+    // This should only happen if the user has a custom registry configured.
+    // Some registries may not have API support.
+    let api_host = match cfg.api {
+        Some(api_host) => api_host,
+        None => return Ok(None),
+    };
+    let token = match auth_token(
+        config,
+        &source_ids.original,
+        None,
+        Operation::Read,
+        vec![],
+        false,
+    ) {
+        Ok(token) => Some(token),
+        Err(err) => {
+            // If the token is missing, it means the user is not logged in.
+            // We don't want to show an error in this case.
+            if err.to_string().contains(
+                (AuthorizationErrorReason::TokenMissing)
+                    .to_string()
+                    .as_str(),
+            ) {
+                return Ok(None);
+            }
+            return Err(err);
+        }
+    };
+
+    let handle = http_handle(config)?;
+    Ok(Some(CratesIoRegistry::new_handle(
+        api_host,
+        token,
+        handle,
+        cfg.auth_required,
+    )))
 }

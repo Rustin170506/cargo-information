@@ -205,7 +205,7 @@ dependencies = [
  "cargo-util 0.2.9",
  "clap",
  "color-print",
- "crates-io",
+ "crates-io 0.39.2",
  "curl",
  "curl-sys",
  "filetime",
@@ -312,11 +312,13 @@ dependencies = [
  "anstyle",
  "anyhow",
  "cargo",
+ "cargo-credential",
  "cargo-test-macro",
  "cargo-test-support",
  "cargo-util 0.2.7",
  "clap",
  "color-print",
+ "crates-io 0.39.0",
  "snapbox",
 ]
 
@@ -343,7 +345,7 @@ dependencies = [
  "anyhow",
  "cargo-test-macro",
  "cargo-util 0.2.9",
- "crates-io",
+ "crates-io 0.39.2",
  "filetime",
  "flate2",
  "git2",
@@ -520,6 +522,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce420fe07aecd3e67c5f910618fe65e94158f6dcc0adf44e00d69ce2bdfe0fd0"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "crates-io"
+version = "0.39.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aadfd000bd635ce58527e2dffe008339867991ab12a786b859d9cfe967c0f72"
+dependencies = [
+ "curl",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "url",
 ]
 
 [[package]]
