@@ -11,6 +11,7 @@ mod with_locked_within_workspace;
 mod with_offline;
 mod with_quiet;
 mod within_workspace;
+mod within_workspace_with_alternative_registry;
 
 // Invoke `cargo-info info` with the test environment.
 pub(crate) fn cargo_info() -> snapbox::cmd::Command {

@@ -1,0 +1,4 @@
+my-package
+version: 99999.0.0-alpha.1+my-package
+license: unknown
+rust-version: unknown
