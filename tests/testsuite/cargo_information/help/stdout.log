@@ -2,9 +2,6 @@ Display info about a package in the registry
 
 Usage: cargo info [OPTIONS] <SPEC>
 
-Arguments:
-  <SPEC>  
-
 Options:
       --index <INDEX>        Registry index URL to search packages in
       --registry <REGISTRY>  Registry to search packages in
@@ -14,6 +11,9 @@ Options:
       --config <KEY=VALUE>   Override a configuration value
   -Z <FLAG>                  Unstable (nightly-only) flags to Cargo, see 'cargo -Z help' for details
   -h, --help                 Print help
+
+Package Selection:
+  <SPEC>  Package to inspect
 
 Manifest Options:
       --frozen   Require Cargo.lock and cache are up to date

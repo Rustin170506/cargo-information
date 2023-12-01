@@ -319,6 +319,7 @@ dependencies = [
  "clap",
  "color-print",
  "crates-io 0.39.0",
+ "semver",
  "snapbox",
 ]
 

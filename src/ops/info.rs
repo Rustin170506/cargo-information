@@ -3,7 +3,7 @@ use std::task::Poll;
 
 use anyhow::{bail, Context as _};
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, PackageId, Registry, SourceId, Summary, Workspace};
+use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Summary, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::{RegistrySource, SourceConfigMap};
@@ -18,7 +18,11 @@ use crates_io::User;
 
 use super::view::{pretty_view, suggest_cargo_tree};
 
-pub fn info(spec: &str, config: &Config, reg_or_index: Option<RegistryOrIndex>) -> CargoResult<()> {
+pub fn info(
+    spec: &PackageIdSpec,
+    config: &Config,
+    reg_or_index: Option<RegistryOrIndex>,
+) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
     let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
@@ -29,8 +33,17 @@ pub fn info(spec: &str, config: &Config, reg_or_index: Option<RegistryOrIndex>) 
     if let Ok(root) = root_manifest(None, config) {
         let ws = Workspace::new(&root, config)?;
         if let Some(resolve) = ops::load_pkg_lockfile(&ws)? {
-            if let Ok(p) = resolve.query(spec) {
+            if let Ok(p) = resolve.query(spec.name()) {
                 package_id = Some(p)
+            }
+        }
+    }
+    // If uses specific version, check if the version matches.
+    // If not, we need to query the specified version from the registry.
+    if let Some(version) = spec.version() {
+        if let Some(id) = package_id {
+            if id.version() != &version {
+                package_id = None
             }
         }
     }
@@ -47,7 +60,7 @@ pub fn info(spec: &str, config: &Config, reg_or_index: Option<RegistryOrIndex>) 
 // Query the package registry and pretty print the result.
 // If package_id is None, find the latest version.
 fn query_and_pretty_view(
-    spec: &str,
+    spec: &PackageIdSpec,
     package_id: Option<PackageId>,
     config: &Config,
     mut registry: PackageRegistry,
@@ -65,7 +78,8 @@ fn query_and_pretty_view(
         }
     }
     // Query without version requirement to get all index summaries.
-    let dep = Dependency::parse(spec, None, source_ids.original)?;
+    let version_req = spec.version().map(|v| v.to_string());
+    let dep = Dependency::parse(spec.name(), version_req.as_deref(), source_ids.original)?;
     let summaries = loop {
         // Exact to avoid returning all for path/git
         match registry.query_vec(&dep, QueryKind::Exact) {
@@ -79,8 +93,18 @@ fn query_and_pretty_view(
     let package_id = match package_id {
         Some(id) => id,
         None => {
-            // Find the latest version.
-            let summary = summaries.iter().max_by_key(|s| s.package_id().version());
+            let summary = match spec.version() {
+                Some(ref version_req) => {
+                    // Find the summary which matches the version requirement.
+                    summaries
+                        .iter()
+                        .find(|s| s.package_id().version() == version_req)
+                }
+                None => {
+                    // Find the latest version.
+                    summaries.iter().max_by_key(|s| s.package_id().version())
+                }
+            };
 
             // If can not find the latest version, return an error.
             match summary {
