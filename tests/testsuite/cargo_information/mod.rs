@@ -6,6 +6,7 @@ mod help;
 mod not_found;
 mod specify_version_outside_workspace;
 mod specify_version_within_ws_and_conflict_with_lockfile;
+mod specify_version_within_ws_and_match_with_lockfile;
 mod with_frozen_outside_workspace;
 mod with_frozen_within_workspace;
 mod with_locked_outside_workspace;
