@@ -16,7 +16,6 @@ cargo-util = "0.2.7"
 clap = "4.4.10"
 color-print = "0.3.5"
 crates-io = "0.39.0"
-semver = "1.0.20"
 
 
 [dev-dependencies]
