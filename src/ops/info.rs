@@ -38,13 +38,11 @@ pub fn info(
             }
         }
     }
-    // If uses specific version, check if the version matches.
-    // If not, we need to query the specified version from the registry.
-    if let Some(version) = spec.version() {
-        if let Some(id) = package_id {
-            if id.version() != &version {
-                package_id = None
-            }
+
+    // If the locked version is not matched, ignore it.
+    if let Some(pkg_id) = package_id {
+        if !spec.matches(pkg_id) {
+            package_id = None;
         }
     }
 
@@ -78,8 +76,7 @@ fn query_and_pretty_view(
         }
     }
     // Query without version requirement to get all index summaries.
-    let version_req = spec.version().map(|v| v.to_string());
-    let dep = Dependency::parse(spec.name(), version_req.as_deref(), source_ids.original)?;
+    let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
     let summaries = loop {
         // Exact to avoid returning all for path/git
         match registry.query_vec(&dep, QueryKind::Exact) {
@@ -93,19 +90,12 @@ fn query_and_pretty_view(
     let package_id = match package_id {
         Some(id) => id,
         None => {
-            let summary = match spec.version() {
-                Some(ref version_req) => {
-                    // Find the summary which matches the version requirement.
-                    summaries
-                        .iter()
-                        .find(|s| s.package_id().version() == version_req)
-                }
-                None => {
-                    // Find the latest version.
-                    summaries.iter().max_by_key(|s| s.package_id().version())
-                }
-            };
-
+            // If no matching summary is found, it defaults to the summary with the highest version number.
+            let summary = summaries
+                .iter()
+                .filter(|s| spec.matches(s.package_id()))
+                .max_by_key(|s| s.package_id().version())
+                .or(summaries.iter().max_by_key(|s| s.package_id().version()));
             // If can not find the latest version, return an error.
             match summary {
                 Some(summary) => summary.package_id(),
