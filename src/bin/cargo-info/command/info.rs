@@ -1,4 +1,4 @@
-use cargo::util::command_prelude::*;
+use cargo::{core::PackageIdSpec, util::command_prelude::*};
 use cargo_information::ops;
 
 pub fn cli() -> Command {
@@ -11,7 +11,13 @@ pub fn cli() -> Command {
 fn info_subcommand() -> Command {
     Command::new("info")
         .about("Display info about a package in the registry")
-        .arg(Arg::new("pkgid").required(true).value_name("SPEC"))
+        .arg(
+            Arg::new("package")
+                .required(true)
+                .value_name("SPEC")
+                .help_heading(heading::PACKAGE_SELECTION)
+                .help("Package to inspect"),
+        )
         .arg_index("Registry index URL to search packages in")
         .arg_registry("Registry to search packages in")
         .arg(
@@ -91,9 +97,13 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
         &config_args,
     )?;
 
-    let pkgid = args.get_one::<String>("pkgid").map(String::as_str).unwrap();
+    let package = args
+        .get_one::<String>("package")
+        .map(String::as_str)
+        .unwrap();
+    let spec = PackageIdSpec::parse(package)?;
     let reg_or_index = args.registry_or_index(config)?;
-    ops::info(pkgid, config, reg_or_index)?;
+    ops::info(&spec, config, reg_or_index)?;
     Ok(())
 }
 
