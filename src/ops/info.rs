@@ -28,23 +28,18 @@ pub fn info(
     let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
     registry.lock_patches();
 
-    let mut package_id = None;
     // If we can find it in workspace, use it as a specific version.
-    if let Ok(root) = root_manifest(None, config) {
-        let ws = Workspace::new(&root, config)?;
-        if let Some(resolve) = ops::load_pkg_lockfile(&ws)? {
-            if let Ok(p) = resolve.query(spec.name()) {
-                package_id = Some(p)
-            }
-        }
-    }
-
-    // If the locked version is not matched, ignore it.
-    if let Some(pkg_id) = package_id {
-        if !spec.matches(pkg_id) {
-            package_id = None;
-        }
-    }
+    let mut package_id = root_manifest(None, config)
+        .ok()
+        .and_then(|root| Workspace::new(&root, config).ok())
+        .and_then(|ws| ops::load_pkg_lockfile(&ws).ok())
+        .and_then(|resolve| {
+            // If the locked versions are matched, use the highest version.
+            resolve
+                .as_ref()
+                .map(|r| r.iter())
+                .and_then(|it| it.filter(|&p| spec.matches(p)).max_by_key(|&p| p.version()))
+        });
 
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
