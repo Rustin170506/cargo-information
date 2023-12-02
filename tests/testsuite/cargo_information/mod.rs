@@ -5,6 +5,7 @@ mod features;
 mod help;
 mod not_found;
 mod specify_version_outside_workspace;
+mod specify_version_with_ws_and_match_multiple_versions;
 mod specify_version_within_ws_and_conflict_with_lockfile;
 mod specify_version_within_ws_and_match_with_lockfile;
 mod with_frozen_outside_workspace;
