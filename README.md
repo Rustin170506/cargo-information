@@ -2,13 +2,16 @@
 
 This project is a response to [issue #948](https://github.com/rust-lang/cargo/issues/948) on the Rust Lang Cargo repository.
 
+[![asciicast](https://asciinema.org/a/624572.svg)](https://asciinema.org/a/624572)
+
 ## Description
 
 `cargo-info` is a tool that provides detailed information about a Rust package. It fetches data from the package's `Cargo.toml` file and presents it in a user-friendly format.
 
 ## Features
 
-- Fetches and displays basic package information (name, version, authors, etc.)
+- Works with all registries that are compatible with Cargo
+- Fetches and displays basic package information (name, version, owners, etc.)
 - Shows package dependencies and their versions
 - Provides information about package features
 
