@@ -17,7 +17,7 @@ fn case() {
         .arg("https://crates.io/my-package")
         .arg("--registry=alternative")
         .assert()
-        .success()
+        .failure()
         .stdout_matches_path(curr_dir!().join("stdout.log"))
         .stderr_matches_path(curr_dir!().join("stderr.log"));
 }

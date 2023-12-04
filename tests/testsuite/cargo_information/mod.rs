@@ -5,7 +5,6 @@ mod features;
 mod help;
 mod not_found;
 mod specify_version_outside_workspace;
-mod specify_version_with_url;
 mod specify_version_with_url_but_registry_is_not_matched;
 mod specify_version_with_ws_and_match_multiple_versions;
 mod specify_version_within_ws_and_conflict_with_lockfile;
