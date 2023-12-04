@@ -89,8 +89,7 @@ fn query_and_pretty_view(
             let summary = summaries
                 .iter()
                 .filter(|s| spec.matches(s.package_id()))
-                .max_by_key(|s| s.package_id().version())
-                .or(summaries.iter().max_by_key(|s| s.package_id().version()));
+                .max_by_key(|s| s.package_id().version());
             // If can not find the latest version, return an error.
             match summary {
                 Some(summary) => summary.package_id(),

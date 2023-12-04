@@ -1,0 +1,2 @@
+    Updating `alternative` index
+error: could not find `https://crates.io/my-package` in registry `[ROOTURL]/alternative-registry`
