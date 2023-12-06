@@ -1,6 +1,8 @@
 # Change Log
 
-## [Unreleased]
+<!-- next-header -->
+
+## [Unreleased] - ReleaseDate
 
 ### Added
 
