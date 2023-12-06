@@ -3,7 +3,7 @@ use std::task::Poll;
 
 use anyhow::{bail, Context as _};
 use cargo::core::registry::PackageRegistry;
-use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Summary, Workspace};
+use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::{RegistrySource, SourceConfigMap};
@@ -106,7 +106,6 @@ fn query_and_pretty_view(
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
     let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
-    let summaries: Vec<Summary> = summaries.iter().map(|s| s.clone()).collect();
     let mut shell = config.shell();
     let stdout = shell.out();
     pretty_view(package, &summaries, &owners, stdout)?;
