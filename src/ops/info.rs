@@ -8,7 +8,6 @@ use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::{RegistrySource, SourceConfigMap};
 use cargo::util::auth::{auth_token, AuthorizationErrorReason};
-use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
 use cargo::util::network::http::http_handle;
 use cargo::{ops, CargoResult, Config};
@@ -25,7 +24,7 @@ pub fn info(
 ) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
-    let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
+    let _lock = config.acquire_package_cache_lock()?;
     registry.lock_patches();
 
     // If we can find it in workspace, use it as a specific version.
@@ -107,7 +106,7 @@ fn query_and_pretty_view(
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
     let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
-    let summaries: Vec<Summary> = summaries.iter().map(|s| s.as_summary().clone()).collect();
+    let summaries: Vec<Summary> = summaries.iter().map(|s| s.clone()).collect();
     let mut shell = config.shell();
     let stdout = shell.out();
     pretty_view(package, &summaries, &owners, stdout)?;
