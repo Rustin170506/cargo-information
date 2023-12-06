@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.2.0] - 2023-12-06
+
 ### Added
 
 - Support for version selection in package specification.
