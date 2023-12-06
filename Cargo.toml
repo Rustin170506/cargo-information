@@ -10,8 +10,8 @@ rust-version = "1.73"
 [dependencies]
 anstyle = "1.0.4"
 anyhow = "1.0.75"
-cargo = { git = "https://github.com/rust-lang/cargo.git" }
-cargo-credential = { git = "https://github.com/rust-lang/cargo.git" }
+cargo = { version = "0.75.1" }
+cargo-credential = { version = "0.4.1" }
 cargo-util = "0.2.7"
 clap = "4.4.11"
 color-print = "0.3.5"
