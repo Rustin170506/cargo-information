@@ -1,3 +1,1 @@
-thread 'main' panicked at /Users/hi-rustin/.cargo/registry/src/index.crates.io-6f17d22bba15001f/cargo-0.75.1/src/cargo/core/dependency.rs:164:9:
-assertion failed: !name.is_empty()
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: package ID specification must have a name
