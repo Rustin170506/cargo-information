@@ -4,19 +4,19 @@ mod basic;
 mod features;
 mod help;
 mod not_found;
-mod specify_version_outside_workspace;
+mod specify_version_outside_ws;
 mod specify_version_with_url_but_registry_is_not_matched;
 mod specify_version_with_ws_and_match_multiple_versions;
 mod specify_version_within_ws_and_conflict_with_lockfile;
 mod specify_version_within_ws_and_match_with_lockfile;
-mod with_frozen_outside_workspace;
-mod with_frozen_within_workspace;
-mod with_locked_outside_workspace;
-mod with_locked_within_workspace;
+mod with_frozen_outside_ws;
+mod with_frozen_within_ws;
+mod with_locked_outside_ws;
+mod with_locked_within_ws;
 mod with_offline;
 mod with_quiet;
-mod within_workspace;
-mod within_workspace_with_alternative_registry;
+mod within_ws;
+mod within_ws_with_alternative_registry;
 
 // Invoke `cargo-info info` with the test environment.
 pub(crate) fn cargo_info() -> snapbox::cmd::Command {
