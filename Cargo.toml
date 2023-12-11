@@ -21,7 +21,7 @@ crates-io = "0.39.0"
 [dev-dependencies]
 cargo-test-macro = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-test-support = { git = "https://github.com/rust-lang/cargo.git" }
-snapbox = "0.4.14"
+snapbox = "0.4.15"
 
 [[bin]]
 name = "cargo-info"
