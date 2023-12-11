@@ -4,6 +4,11 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- Do now allow empty spec name.
+- Bail out an error for non remote registry.
+
 ## [0.2.0] - 2023-12-06
 
 ### Added
