@@ -46,6 +46,10 @@ pub fn info(
         package_id = None;
     }
 
+    if !source_ids.original.is_remote_registry() {
+        anyhow::bail!("`cargo info` command currently only supports remote registry");
+    }
+
     query_and_pretty_view(spec, package_id, config, registry, source_ids)
 }
 
