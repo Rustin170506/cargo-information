@@ -17,6 +17,7 @@ mod with_locked_within_ws;
 mod with_offline;
 mod with_quiet;
 mod within_ws;
+mod within_ws_and_pick_ws_package;
 mod within_ws_with_alternative_registry;
 
 // Invoke `cargo-info info` with the test environment.
