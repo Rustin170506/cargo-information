@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.2.1] - 2023-12-11
+
 ### Fixed
 
 - Do now allow empty spec name.
