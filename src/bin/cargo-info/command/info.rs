@@ -102,6 +102,13 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
         .map(String::as_str)
         .unwrap();
     let spec = PackageIdSpec::parse(package)?;
+    if spec.name().is_empty() {
+        return Err(CliError::new(
+            anyhow::format_err!("package ID specification must have a name"),
+            101,
+        ));
+    }
+
     let reg_or_index = args.registry_or_index(config)?;
     ops::info(&spec, config, reg_or_index)?;
     Ok(())
