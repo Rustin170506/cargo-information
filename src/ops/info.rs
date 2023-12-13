@@ -46,10 +46,6 @@ pub fn info(
         package_id = None;
     }
 
-    if !source_ids.original.is_remote_registry() {
-        anyhow::bail!("`cargo info` command currently only supports remote registry");
-    }
-
     query_and_pretty_view(spec, package_id, config, registry, source_ids)
 }
 
@@ -128,6 +124,10 @@ fn try_list_owners(
     source_ids: RegistrySourceIds,
     package_name: &str,
 ) -> CargoResult<Option<Vec<String>>> {
+    // Only remote registries support listing owners.
+    if !source_ids.original.is_remote_registry() {
+        return Ok(None);
+    }
     let registry = api_registry(config, source_ids)?;
     match registry {
         Some(mut registry) => {
