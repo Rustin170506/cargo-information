@@ -12,6 +12,7 @@ pub(super) fn pretty_view(
     package: &Package,
     summaries: &[Summary],
     owners: &Option<Vec<String>>,
+    suggest_cargo_tree_command: bool,
     stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
@@ -80,6 +81,10 @@ pub(super) fn pretty_view(
 
     if let Some(owners) = owners {
         pretty_owners(owners, stdout)?;
+    }
+
+    if suggest_cargo_tree_command {
+        suggest_cargo_tree(package_id, stdout)?;
     }
 
     Ok(())
@@ -234,7 +239,7 @@ fn pretty_owners(owners: &Vec<String>, stdout: &mut dyn Write) -> CargoResult<()
 }
 
 // Suggest the cargo tree command to view the dependency tree.
-pub(super) fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
+fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
     let literal = LITERAL.render();
     let reset = anstyle::Reset.render();
 

@@ -4,4 +4,3 @@ license: unknown
 rust-version: unknown
 dependencies:
   my-package@0.1
-note: to see how you depend on cargo-list-test-fixture, run `cargo tree --package cargo-list-test-fixture@0.2.0 --invert`
