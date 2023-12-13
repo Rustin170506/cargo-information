@@ -51,10 +51,11 @@ pub fn info(
         package_id = None;
     }
 
+    validate_locked_and_frozen_options(package_id, config)?;
+
     // Only suggest cargo tree command when the package is not a workspace member.
     // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
     let suggest_cargo_tree_command = package_id.is_some() && !is_member;
-
     query_and_pretty_view(
         spec,
         package_id,
@@ -75,17 +76,6 @@ fn query_and_pretty_view(
     source_ids: RegistrySourceIds,
     suggest_cargo_tree_command: bool,
 ) -> CargoResult<()> {
-    let from_workspace = package_id.is_some();
-    // Only in workspace, we can use --frozen or --locked.
-    if !from_workspace {
-        if config.locked() {
-            anyhow::bail!("the option `--locked` can only be used within a workspace");
-        }
-
-        if config.frozen() {
-            anyhow::bail!("the option `--frozen` can only be used within a workspace");
-        }
-    }
     // Query without version requirement to get all index summaries.
     let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
     let summaries = loop {
@@ -294,4 +284,22 @@ fn api_registry(
         handle,
         cfg.auth_required,
     )))
+}
+
+fn validate_locked_and_frozen_options(
+    package_id: Option<PackageId>,
+    config: &Config,
+) -> Result<(), anyhow::Error> {
+    let from_workspace = package_id.is_some();
+    // Only in workspace, we can use --frozen or --locked.
+    if !from_workspace {
+        if config.locked() {
+            anyhow::bail!("the option `--locked` can only be used within a workspace");
+        }
+
+        if config.frozen() {
+            anyhow::bail!("the option `--frozen` can only be used within a workspace");
+        }
+    }
+    Ok(())
 }
