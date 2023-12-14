@@ -23,6 +23,14 @@ To install `cargo-info`, run the following command:
 cargo install cargo-information --git https://github.com/hi-rustin/cargo-information.git
 ```
 
+### Arch Linux
+
+`cargo-info` can be installed from the [AUR](https://aur.archlinux.org/packages?O=0&SeB=nd&K=cargo-information&outdated=&SB=p&SO=d&PP=50&submit=Go) using an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers). For example:
+
+```bash
+paru -S cargo-information
+```
+
 ## Usage
 
 After installation, you can use the `cargo info` command followed by the package name to get information about a package:
