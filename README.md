@@ -17,6 +17,8 @@ This project is a response to [issue #948](https://github.com/rust-lang/cargo/is
 
 ## Installation
 
+### Cargo
+
 To install `cargo-info`, run the following command:
 
 ```bash
