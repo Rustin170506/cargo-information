@@ -17,7 +17,15 @@ This project is a response to [issue #948](https://github.com/rust-lang/cargo/is
 
 ## Installation
 
+### Cargo
+
 To install `cargo-info`, run the following command:
+
+```bash
+cargo install cargo-information
+```
+
+or if you want to install the latest version from the main branch:
 
 ```bash
 cargo install cargo-information --git https://github.com/hi-rustin/cargo-information.git
