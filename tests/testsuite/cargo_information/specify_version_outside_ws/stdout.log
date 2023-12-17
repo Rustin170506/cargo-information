@@ -1,4 +1,4 @@
 my-package
-version: 0.2.3+my-package
+version: 0.2.3+my-package (from registry `dummy-registry`)
 license: unknown
 rust-version: unknown
