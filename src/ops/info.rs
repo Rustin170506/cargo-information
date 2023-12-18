@@ -120,6 +120,7 @@ fn query_and_pretty_view(
         &summaries,
         &owners,
         suggest_cargo_tree_command,
+        config,
         stdout,
     )?;
 
