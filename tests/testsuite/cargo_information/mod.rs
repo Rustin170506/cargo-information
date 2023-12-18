@@ -19,6 +19,7 @@ mod with_quiet;
 mod within_ws;
 mod within_ws_and_pick_ws_package;
 mod within_ws_with_alternative_registry;
+mod within_ws_without_lockfile;
 
 // Invoke `cargo-info info` with the test environment.
 pub(crate) fn cargo_info() -> snapbox::cmd::Command {
