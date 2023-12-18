@@ -1,5 +1,5 @@
 my-package
-version: 0.1.1
+version: 0.1.1 (from registry `dummy-registry`)
 license: unknown
 rust-version: unknown
 features:

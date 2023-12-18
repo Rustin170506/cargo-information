@@ -12,6 +12,7 @@ pub(super) fn pretty_view(
     package: &Package,
     summaries: &[Summary],
     owners: &Option<Vec<String>>,
+    suggest_cargo_tree_command: bool,
     stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
@@ -32,10 +33,28 @@ pub(super) fn pretty_view(
         writeln!(stdout, "{}", description.trim_end())?;
     }
     write!(stdout, "{header}version:{reset} {}", package_id.version())?;
-    if let Some(latest) = summaries.iter().max_by_key(|s| s.version()) {
-        if latest.version() != package_id.version() {
-            write!(stdout, " {warn}(latest {}){reset}", latest.version())?;
+    // Add a warning message to stdout if the following conditions are met:
+    // 1. The package version is not the latest available version.
+    // 2. The package source is not crates.io.
+    match (
+        summaries.iter().max_by_key(|s| s.version()),
+        summary.source_id().is_crates_io(),
+    ) {
+        (Some(latest), false) if latest.version() != package_id.version() => {
+            write!(
+                stdout,
+                " {warn}(latest {} {note}from {}{warn}){reset}",
+                latest.version(),
+                summary.source_id()
+            )?;
         }
+        (Some(latest), true) if latest.version() != package_id.version() => {
+            write!(stdout, " {warn}(latest {}){reset}", latest.version(),)?;
+        }
+        (_, false) => {
+            write!(stdout, " {note}(from {}){reset}", summary.source_id(),)?;
+        }
+        (_, true) => {}
     }
     writeln!(stdout)?;
     writeln!(
@@ -80,6 +99,10 @@ pub(super) fn pretty_view(
 
     if let Some(owners) = owners {
         pretty_owners(owners, stdout)?;
+    }
+
+    if suggest_cargo_tree_command {
+        suggest_cargo_tree(package_id, stdout)?;
     }
 
     Ok(())
@@ -234,7 +257,7 @@ fn pretty_owners(owners: &Vec<String>, stdout: &mut dyn Write) -> CargoResult<()
 }
 
 // Suggest the cargo tree command to view the dependency tree.
-pub(super) fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
+fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
     let literal = LITERAL.render();
     let reset = anstyle::Reset.render();
 

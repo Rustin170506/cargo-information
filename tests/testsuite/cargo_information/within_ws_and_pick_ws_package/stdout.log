@@ -1,0 +1,6 @@
+cargo-list-test-fixture
+version: 0.2.0 (from [ROOT]/case)
+license: unknown
+rust-version: unknown
+dependencies:
+  my-package@0.1

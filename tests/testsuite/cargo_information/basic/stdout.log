@@ -1,6 +1,6 @@
 my-package #foo #bar #baz
 A package for testing
-version: 0.1.0
+version: 0.1.0 (from registry `dummy-registry`)
 license: MIT
 rust-version: 1.50.0
 documentation: https://docs.rs/my-package/0.1.0

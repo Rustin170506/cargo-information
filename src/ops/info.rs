@@ -15,7 +15,7 @@ use cargo_credential::Operation;
 use crates_io::Registry as CratesIoRegistry;
 use crates_io::User;
 
-use super::view::{pretty_view, suggest_cargo_tree};
+use super::view::pretty_view;
 
 pub fn info(
     spec: &PackageIdSpec,
@@ -28,29 +28,42 @@ pub fn info(
     registry.lock_patches();
 
     // If we can find it in workspace, use it as a specific version.
-    let mut package_id = root_manifest(None, config)
+    let (mut package_id, is_member) = root_manifest(None, config)
         .ok()
         .and_then(|root| Workspace::new(&root, config).ok())
-        .and_then(|ws| ops::load_pkg_lockfile(&ws).ok())
-        .and_then(|resolve| {
+        .and_then(|ws| {
+            ops::load_pkg_lockfile(&ws)
+                .map(|resolve| (ws, resolve))
+                .ok()
+        })
+        .and_then(|(ws, resolve)| {
             // If the locked versions are matched, use the highest version.
-            resolve
+            let package_id = resolve
                 .as_ref()
                 .map(|r| r.iter())
-                .and_then(|it| it.filter(|&p| spec.matches(p)).max_by_key(|&p| p.version()))
-        });
-
+                .and_then(|it| it.filter(|&p| spec.matches(p)).max_by_key(|&p| p.version()));
+            package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
+        })
+        .unwrap_or((None, false));
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
     if !use_package_source_id {
         package_id = None;
     }
 
-    if !source_ids.original.is_remote_registry() {
-        anyhow::bail!("`cargo info` command currently only supports remote registry");
-    }
+    validate_locked_and_frozen_options(package_id, config)?;
 
-    query_and_pretty_view(spec, package_id, config, registry, source_ids)
+    // Only suggest cargo tree command when the package is not a workspace member.
+    // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
+    let suggest_cargo_tree_command = package_id.is_some() && !is_member;
+    query_and_pretty_view(
+        spec,
+        package_id,
+        config,
+        registry,
+        source_ids,
+        suggest_cargo_tree_command,
+    )
 }
 
 // Query the package registry and pretty print the result.
@@ -61,18 +74,8 @@ fn query_and_pretty_view(
     config: &Config,
     mut registry: PackageRegistry,
     source_ids: RegistrySourceIds,
+    suggest_cargo_tree_command: bool,
 ) -> CargoResult<()> {
-    let from_workspace = package_id.is_some();
-    // Only in workspace, we can use --frozen or --locked.
-    if !from_workspace {
-        if config.locked() {
-            anyhow::bail!("the option `--locked` can only be used within a workspace");
-        }
-
-        if config.frozen() {
-            anyhow::bail!("the option `--frozen` can only be used within a workspace");
-        }
-    }
     // Query without version requirement to get all index summaries.
     let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
     let summaries = loop {
@@ -112,12 +115,13 @@ fn query_and_pretty_view(
     let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
     let mut shell = config.shell();
     let stdout = shell.out();
-    pretty_view(package, &summaries, &owners, stdout)?;
-
-    // Suggest the cargo tree command if the package is from workspace.
-    if from_workspace {
-        suggest_cargo_tree(package_id, stdout)?;
-    }
+    pretty_view(
+        package,
+        &summaries,
+        &owners,
+        suggest_cargo_tree_command,
+        stdout,
+    )?;
 
     Ok(())
 }
@@ -128,6 +132,10 @@ fn try_list_owners(
     source_ids: RegistrySourceIds,
     package_name: &str,
 ) -> CargoResult<Option<Vec<String>>> {
+    // Only remote registries support listing owners.
+    if !source_ids.original.is_remote_registry() {
+        return Ok(None);
+    }
     let registry = api_registry(config, source_ids)?;
     match registry {
         Some(mut registry) => {
@@ -276,4 +284,22 @@ fn api_registry(
         handle,
         cfg.auth_required,
     )))
+}
+
+fn validate_locked_and_frozen_options(
+    package_id: Option<PackageId>,
+    config: &Config,
+) -> Result<(), anyhow::Error> {
+    let from_workspace = package_id.is_some();
+    // Only in workspace, we can use --frozen or --locked.
+    if !from_workspace {
+        if config.locked() {
+            anyhow::bail!("the option `--locked` can only be used within a workspace");
+        }
+
+        if config.frozen() {
+            anyhow::bail!("the option `--frozen` can only be used within a workspace");
+        }
+    }
+    Ok(())
 }
