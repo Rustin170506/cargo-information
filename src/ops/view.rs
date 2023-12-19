@@ -1,8 +1,9 @@
 use std::io::Write;
 
 use cargo::{
+    core::SourceId,
     core::{dependency::DepKind, Dependency, FeatureMap, Package, PackageId, Summary},
-    CargoResult,
+    CargoResult, Config,
 };
 
 use super::style::{ERROR, HEADER, LITERAL, NOP, NOTE, WARN};
@@ -13,6 +14,7 @@ pub(super) fn pretty_view(
     summaries: &[Summary],
     owners: &Option<Vec<String>>,
     suggest_cargo_tree_command: bool,
+    config: &Config,
     stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
@@ -45,14 +47,18 @@ pub(super) fn pretty_view(
                 stdout,
                 " {warn}(latest {} {note}from {}{warn}){reset}",
                 latest.version(),
-                summary.source_id()
+                pretty_source(summary.source_id(), config)
             )?;
         }
         (Some(latest), true) if latest.version() != package_id.version() => {
             write!(stdout, " {warn}(latest {}){reset}", latest.version(),)?;
         }
         (_, false) => {
-            write!(stdout, " {note}(from {}){reset}", summary.source_id(),)?;
+            write!(
+                stdout,
+                " {note}(from {}){reset}",
+                pretty_source(summary.source_id(), config)
+            )?;
         }
         (_, true) => {}
     }
@@ -106,6 +112,18 @@ pub(super) fn pretty_view(
     }
 
     Ok(())
+}
+
+fn pretty_source(source: SourceId, config: &Config) -> String {
+    if let Some(relpath) = source
+        .local_path()
+        .and_then(|path| pathdiff::diff_paths(path, config.cwd()))
+    {
+        let path = std::path::Path::new(".").join(relpath);
+        path.display().to_string()
+    } else {
+        source.to_string()
+    }
 }
 
 fn pretty_deps(package: &Package, stdout: &mut dyn Write) -> CargoResult<()> {
