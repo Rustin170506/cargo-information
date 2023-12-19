@@ -1,6 +1,4 @@
 my-package
-version: 0.2.3+my-package (latest 0.4.1+my-package)
+version: 0.2.3+my-package (latest 0.4.1+my-package from registry `dummy-registry`)
 license: unknown
 rust-version: unknown
-documentation: https://docs.rs/my-package/0.2.3+my-package
-note: to see how you depend on my-package, run `cargo tree --package my-package@0.2.3+my-package --invert`
