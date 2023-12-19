@@ -20,7 +20,7 @@ fn case() {
     let cwd = &project_root;
 
     cargo_info()
-        .arg("my-package@0.2")
+        .arg("my-package")
         .arg("--registry=dummy-registry")
         .current_dir(cwd)
         .assert()

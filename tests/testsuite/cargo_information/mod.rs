@@ -7,7 +7,6 @@ mod not_found;
 mod specify_empty_version_with_url;
 mod specify_version_outside_ws;
 mod specify_version_with_url_but_registry_is_not_matched;
-mod specify_version_with_ws_and_match_multiple_versions;
 mod specify_version_within_ws_and_conflict_with_lockfile;
 mod specify_version_within_ws_and_match_with_lockfile;
 mod with_frozen_outside_ws;
@@ -19,6 +18,7 @@ mod with_quiet;
 mod within_ws;
 mod within_ws_and_pick_ws_package;
 mod within_ws_with_alternative_registry;
+mod within_ws_without_lockfile;
 
 // Invoke `cargo-info info` with the test environment.
 pub(crate) fn cargo_info() -> snapbox::cmd::Command {

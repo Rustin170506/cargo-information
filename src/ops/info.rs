@@ -31,17 +31,13 @@ pub fn info(
     let (mut package_id, is_member) = root_manifest(None, config)
         .ok()
         .and_then(|root| Workspace::new(&root, config).ok())
-        .and_then(|ws| {
-            ops::load_pkg_lockfile(&ws)
-                .map(|resolve| (ws, resolve))
-                .ok()
-        })
+        .and_then(|ws| ops::resolve_ws(&ws).map(|(_, resolve)| (ws, resolve)).ok())
         .and_then(|(ws, resolve)| {
             // If the locked versions are matched, use the highest version.
             let package_id = resolve
-                .as_ref()
-                .map(|r| r.iter())
-                .and_then(|it| it.filter(|&p| spec.matches(p)).max_by_key(|&p| p.version()));
+                .iter()
+                .filter(|&p| spec.matches(p))
+                .max_by_key(|&p| p.version());
             package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
         })
         .unwrap_or((None, false));
