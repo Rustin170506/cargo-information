@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.3.0] - 2023-12-20
+
 ### Added
 
 - Allow to inspect a package from the local workspace.
