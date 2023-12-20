@@ -4,6 +4,7 @@ mod basic;
 mod features;
 mod help;
 mod not_found;
+mod pick_msrv_compatible_package;
 mod specify_empty_version_with_url;
 mod specify_version_outside_ws;
 mod specify_version_with_url_but_registry_is_not_matched;
