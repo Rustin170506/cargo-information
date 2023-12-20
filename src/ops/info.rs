@@ -28,12 +28,13 @@ pub fn info(
     registry.lock_patches();
 
     // If we can find it in workspace, use it as a specific version.
-    let (mut package_id, is_member) = root_manifest(None, config)
+    let ws = root_manifest(None, config)
         .ok()
-        .and_then(|root| Workspace::new(&root, config).ok())
-        .and_then(|ws| ops::resolve_ws(&ws).map(|(_, resolve)| (ws, resolve)).ok())
+        .and_then(|root| Workspace::new(&root, config).ok());
+    let (mut package_id, is_member) = ws
+        .as_ref()
+        .and_then(|ws| ops::resolve_ws(ws).map(|(_, resolve)| (ws, resolve)).ok())
         .and_then(|(ws, resolve)| {
-            // If the locked versions are matched, use the highest version.
             let package_id = resolve
                 .iter()
                 .filter(|&p| spec.matches(p))
@@ -49,6 +50,14 @@ pub fn info(
 
     validate_locked_and_frozen_options(package_id, config)?;
 
+    let current_rustc_version = &config.load_global_rustc(ws.as_ref())?.version;
+    // Remove any pre-release identifiers for easier comparison.
+    // Otherwise, the MSRV check will fail if the current Rust version is a nightly or beta version.
+    let current_rustc_version = &semver::Version::new(
+        current_rustc_version.major,
+        current_rustc_version.minor,
+        current_rustc_version.patch,
+    );
     // Only suggest cargo tree command when the package is not a workspace member.
     // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
     let suggest_cargo_tree_command = package_id.is_some() && !is_member;
@@ -58,6 +67,7 @@ pub fn info(
         config,
         registry,
         source_ids,
+        current_rustc_version,
         suggest_cargo_tree_command,
     )
 }
@@ -70,6 +80,7 @@ fn query_and_pretty_view(
     config: &Config,
     mut registry: PackageRegistry,
     source_ids: RegistrySourceIds,
+    current_rustc_version: &semver::Version,
     suggest_cargo_tree_command: bool,
 ) -> CargoResult<()> {
     // Query without version requirement to get all index summaries.
@@ -87,11 +98,28 @@ fn query_and_pretty_view(
     let package_id = match package_id {
         Some(id) => id,
         None => {
-            // If no matching summary is found, it defaults to the summary with the highest version number.
             let summary = summaries
                 .iter()
                 .filter(|s| spec.matches(s.package_id()))
-                .max_by_key(|s| s.package_id().version());
+                .max_by(|s1, s2| {
+                    // Check the MSRV compatibility.
+                    let s1_matches = s1
+                        .rust_version()
+                        .map(|v| v.caret_req().matches(current_rustc_version))
+                        .unwrap_or_else(|| false);
+                    let s2_matches = s2
+                        .rust_version()
+                        .map(|v| v.caret_req().matches(current_rustc_version))
+                        .unwrap_or_else(|| false);
+                    // MSRV compatible version is preferred.
+                    match (s1_matches, s2_matches) {
+                        (true, false) => std::cmp::Ordering::Greater,
+                        (false, true) => std::cmp::Ordering::Less,
+                        // If both summaries match the current Rust version or neither do, try to
+                        // pick the latest version.
+                        _ => s1.package_id().version().cmp(s2.package_id().version()),
+                    }
+                });
             // If can not find the latest version, return an error.
             match summary {
                 Some(summary) => summary.package_id(),
