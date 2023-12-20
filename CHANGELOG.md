@@ -4,6 +4,14 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Allow to inspect a package from the local workspace.
+
+### Fixed
+
+- Generate `Cargo.lock` file if it does not exist and pick the correct matching version.
+
 ## [0.2.1] - 2023-12-11
 
 ### Fixed
