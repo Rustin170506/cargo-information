@@ -310,6 +310,7 @@ dependencies = [
  "color-print",
  "crates-io 0.39.0",
  "pathdiff",
+ "semver",
  "snapbox",
  "trycmd",
 ]
