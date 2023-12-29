@@ -1,0 +1,4 @@
+my-package
+version: 0.2.0+my-package (from registry `dummy-registry`)
+license: unknown
+rust-version: 1.9876.0

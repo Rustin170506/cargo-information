@@ -3,6 +3,7 @@ use cargo_test_support::{compare, TestEnv};
 mod basic;
 mod features;
 mod help;
+mod ignore_msrv_compatible_check;
 mod not_found;
 mod pick_msrv_compatible_package;
 mod pick_msrv_compatible_package_within_ws;
