@@ -54,6 +54,10 @@ fn info_subcommand() -> Command {
                 .help_heading(heading::MANIFEST_OPTIONS)
                 .global(true),
         )
+        .arg(flag(
+            "ignore-rust-version",
+            "Ignore `rust-version` specification when choosing a version to inspect",
+        ))
         .arg(multi_opt("config", "KEY=VALUE", "Override a configuration value").global(true))
         .arg(
             Arg::new("unstable-features")
@@ -75,6 +79,7 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
     let frozen = args.flag("frozen");
     let locked = args.flag("locked");
     let offline = args.flag("offline");
+    let ignore_rust_version = args.flag("ignore-rust-version");
     let unstable_flags: Vec<String> = args
         .get_many::<String>("unstable-features")
         .unwrap_or_default()
@@ -110,7 +115,7 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
     }
 
     let reg_or_index = args.registry_or_index(config)?;
-    ops::info(&spec, config, reg_or_index)?;
+    ops::info(&spec, config, reg_or_index, ignore_rust_version)?;
     Ok(())
 }
 

@@ -23,6 +23,7 @@ pub fn info(
     spec: &PackageIdSpec,
     config: &Config,
     reg_or_index: Option<RegistryOrIndex>,
+    ignore_rust_version: bool,
 ) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
@@ -53,23 +54,26 @@ pub fn info(
 
     validate_locked_and_frozen_options(package_id, config)?;
 
-    let msrv_from_nearest_manifest_or_ws =
-        try_get_msrv_from_nearest_manifest_or_ws(&root_manifest, ws.as_ref());
-    // If the workspace does not have a specific Rust version,
-    // or if the command is not called within the workspace, then fallback to the global Rust version.
-    let rustc_version = match msrv_from_nearest_manifest_or_ws {
-        Some(msrv) => msrv,
-        None => {
-            let current_rustc = config.load_global_rustc(ws.as_ref())?.version;
-            // Remove any pre-release identifiers for easier comparison.
-            // Otherwise, the MSRV check will fail if the current Rust version is a nightly or beta version.
-            semver::Version::new(
-                current_rustc.major,
-                current_rustc.minor,
-                current_rustc.patch,
-            )
-        }
-    };
+    let mut rustc_version = None;
+    if !ignore_rust_version {
+        let msrv_from_nearest_manifest_or_ws =
+            try_get_msrv_from_nearest_manifest_or_ws(&root_manifest, ws.as_ref());
+        // If the workspace does not have a specific Rust version,
+        // or if the command is not called within the workspace, then fallback to the global Rust version.
+        rustc_version = Some(match msrv_from_nearest_manifest_or_ws {
+            Some(msrv) => msrv,
+            None => {
+                let current_rustc = config.load_global_rustc(ws.as_ref())?.version;
+                // Remove any pre-release identifiers for easier comparison.
+                // Otherwise, the MSRV check will fail if the current Rust version is a nightly or beta version.
+                semver::Version::new(
+                    current_rustc.major,
+                    current_rustc.minor,
+                    current_rustc.patch,
+                )
+            }
+        });
+    }
 
     // Only suggest cargo tree command when the package is not a workspace member.
     // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
@@ -80,7 +84,7 @@ pub fn info(
         config,
         registry,
         source_ids,
-        &rustc_version,
+        rustc_version,
         suggest_cargo_tree_command,
     )
 }
@@ -93,7 +97,7 @@ fn query_and_pretty_view(
     config: &Config,
     mut registry: PackageRegistry,
     source_ids: RegistrySourceIds,
-    rustc_version: &semver::Version,
+    rustc_version: Option<semver::Version>,
     suggest_cargo_tree_command: bool,
 ) -> CargoResult<()> {
     // Query without version requirement to get all index summaries.
@@ -116,14 +120,20 @@ fn query_and_pretty_view(
                 .filter(|s| spec.matches(s.package_id()))
                 .max_by(|s1, s2| {
                     // Check the MSRV compatibility.
-                    let s1_matches = s1
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
-                    let s2_matches = s2
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
+                    let s1_matches = rustc_version
+                        .as_ref()
+                        .and_then(|rustc_version| {
+                            s1.rust_version()
+                                .map(|v| v.to_caret_req().matches(rustc_version))
+                        })
+                        .unwrap_or(false);
+                    let s2_matches = rustc_version
+                        .as_ref()
+                        .and_then(|rustc_version| {
+                            s2.rust_version()
+                                .map(|v| v.to_caret_req().matches(rustc_version))
+                        })
+                        .unwrap_or(false);
                     // MSRV compatible version is preferred.
                     match (s1_matches, s2_matches) {
                         (true, false) => std::cmp::Ordering::Greater,
