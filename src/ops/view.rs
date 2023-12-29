@@ -176,7 +176,9 @@ fn pretty_req(req: &cargo::util::OptVersionReq) -> String {
     let mut rendered = req.to_string();
     let strip_prefix = match req {
         cargo::util::OptVersionReq::Any => false,
-        cargo::util::OptVersionReq::Req(req) | cargo::util::OptVersionReq::Locked(_, req) => {
+        cargo::util::OptVersionReq::Req(req)
+        | cargo::util::OptVersionReq::Locked(_, req)
+        | cargo::util::OptVersionReq::UpdatePrecise(_, req) => {
             req.comparators.len() == 1 && rendered.starts_with('^')
         }
     };
