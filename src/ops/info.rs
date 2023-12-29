@@ -9,6 +9,7 @@ use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::{RegistrySource, SourceConfigMap};
 use cargo::util::auth::{auth_token, AuthorizationErrorReason};
+use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
 use cargo::util::network::http::http_handle;
 use cargo::{ops, CargoResult, Config};
@@ -25,7 +26,7 @@ pub fn info(
 ) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
     // Make sure we get the lock before we download anything.
-    let _lock = config.acquire_package_cache_lock()?;
+    let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
     registry.lock_patches();
 
     // If we can find it in workspace, use it as a specific version.
@@ -117,11 +118,11 @@ fn query_and_pretty_view(
                     // Check the MSRV compatibility.
                     let s1_matches = s1
                         .rust_version()
-                        .map(|v| v.caret_req().matches(rustc_version))
+                        .map(|v| v.to_caret_req().matches(rustc_version))
                         .unwrap_or_else(|| false);
                     let s2_matches = s2
                         .rust_version()
-                        .map(|v| v.caret_req().matches(rustc_version))
+                        .map(|v| v.to_caret_req().matches(rustc_version))
                         .unwrap_or_else(|| false);
                     // MSRV compatible version is preferred.
                     match (s1_matches, s2_matches) {
@@ -353,7 +354,7 @@ fn try_get_msrv_from_nearest_manifest_or_ws(
                 .as_ref()
                 .and_then(|path| ws.members().find(|p| p.manifest_path() == path))
         })
-        .and_then(|p| p.rust_version()?.version());
+        .and_then(|p| p.rust_version()?.to_version());
     // If the nearest manifest does not have a specific Rust version, try to get it from the workspace.
-    rust_version.or_else(|| ws.and_then(|ws| ws.rust_version()?.version()))
+    rust_version.or_else(|| ws.and_then(|ws| ws.rust_version()?.to_version()))
 }
