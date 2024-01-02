@@ -4,6 +4,7 @@ mod basic;
 mod features;
 mod help;
 mod not_found;
+mod path;
 mod pick_msrv_compatible_package;
 mod pick_msrv_compatible_package_within_ws;
 mod pick_msrv_compatible_package_within_ws_and_use_msrv_from_ws;
