@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use cargo::{core::PackageIdSpec, util::command_prelude::*};
 use cargo_information::ops;
 
@@ -20,6 +22,13 @@ fn info_subcommand() -> Command {
         )
         .arg_index("Registry index URL to search packages in")
         .arg_registry("Registry to search packages in")
+        .arg(
+            Arg::new("path")
+                .long("path")
+                .action(ArgAction::Set)
+                .value_name("PATH")
+                .help("Filesystem path to local crate to inspect"),
+        )
         .arg(
             opt(
                 "verbose",
@@ -69,6 +78,7 @@ fn info_subcommand() -> Command {
 }
 
 pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
+    let path = args.get_one::<String>("path").map(Path::new);
     let verbose = args.verbose();
     let quiet = args.flag("quiet");
     let color = args.get_one::<String>("color").cloned();
@@ -110,7 +120,7 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
     }
 
     let reg_or_index = args.registry_or_index(config)?;
-    ops::info(&spec, config, reg_or_index)?;
+    ops::info(&spec, config, reg_or_index, path)?;
     Ok(())
 }
 

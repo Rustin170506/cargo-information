@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::task::Poll;
 
 use anyhow::{bail, Context as _};
@@ -7,13 +7,14 @@ use cargo::core::registry::PackageRegistry;
 use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
-use cargo::sources::{RegistrySource, SourceConfigMap};
+use cargo::sources::{PathSource, RegistrySource, SourceConfigMap};
 use cargo::util::auth::{auth_token, AuthorizationErrorReason};
 use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
 use cargo::util::network::http::http_handle;
 use cargo::{ops, CargoResult, Config};
 use cargo_credential::Operation;
+use cargo_util::paths;
 use crates_io::Registry as CratesIoRegistry;
 use crates_io::User;
 
@@ -23,14 +24,24 @@ pub fn info(
     spec: &PackageIdSpec,
     config: &Config,
     reg_or_index: Option<RegistryOrIndex>,
+    path: Option<&Path>,
 ) -> CargoResult<()> {
     let mut registry = PackageRegistry::new(config)?;
+    if path.is_some() {
+        // We must normalize the path to ensure that it is a valid path.
+        let root = paths::normalize_path(&std::env::current_dir().unwrap().join(path.unwrap()));
+        let source_id = SourceId::for_path(&root)?;
+        let src = PathSource::new(&root, source_id, config);
+        registry.add_preloaded(Box::new(src));
+    }
     // Make sure we get the lock before we download anything.
     let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
     registry.lock_patches();
 
+    // If the user specified a path, use it as a source.
+    let manifest_path = path.as_ref().map(|p| p.join("Cargo.toml"));
     // If we can find it in workspace, use it as a specific version.
-    let root_manifest = root_manifest(None, config).ok();
+    let root_manifest = root_manifest(manifest_path.as_deref(), config).ok();
     let ws = root_manifest
         .as_ref()
         .and_then(|root| Workspace::new(root, config).ok());
@@ -196,6 +207,7 @@ fn get_username(u: &User) -> String {
     )
 }
 
+#[derive(Debug)]
 struct RegistrySourceIds {
     /// Use when looking up the auth token, or writing out `Cargo.lock`
     original: SourceId,

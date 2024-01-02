@@ -5,6 +5,7 @@ Usage: cargo info [OPTIONS] <SPEC>
 Options:
       --index <INDEX>        Registry index URL to search packages in
       --registry <REGISTRY>  Registry to search packages in
+      --path <PATH>          Filesystem path to local crate to inspect
   -v, --verbose...           Use verbose output (-vv very verbose/build.rs output)
   -q, --quiet                Do not print cargo log messages
       --color <WHEN>         Coloring: auto, always, never
