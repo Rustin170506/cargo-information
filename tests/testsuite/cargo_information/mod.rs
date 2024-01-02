@@ -3,6 +3,7 @@ use cargo_test_support::{compare, TestEnv};
 mod basic;
 mod features;
 mod help;
+mod invalid_path;
 mod not_found;
 mod path;
 mod path_and_pick_itself;
