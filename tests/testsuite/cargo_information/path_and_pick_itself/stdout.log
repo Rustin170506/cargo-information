@@ -1,0 +1,6 @@
+cargo-list-test-fixture
+version: 0.0.0 (from ./crate1)
+license: unknown
+rust-version: unknown
+dependencies:
+  my-package@0.1

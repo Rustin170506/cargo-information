@@ -2,4 +2,3 @@
  Downloading crates ...
   Downloaded my-package v0.1.1+my-package (registry `dummy-registry`)
     Updating crates.io index
-warning: spurious network error (3 tries remaining): [35] SSL connect error (LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to index.crates.io:443 )
