@@ -4,6 +4,17 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Prioritize selection of Minimum Supported Rust Version (MSRV) compatible crate versions. The following hierarchy is used to determine the MSRV:
+  - First, the MSRV of the parent directory package is checked, if it exists.
+  - If the parent directory package does not specify an MSRV, the minimal MSRV of the workspace is checked.
+  - If neither the workspace nor the parent directory package specify an MSRV, the version of the current Rust compiler (`rustc --version`) is used.
+
+### Changed
+
+- Dependency updates and patches, including updates to rust crate cargo(0.74.0), clap(4.4.12), anyhow(1.0.79) and semver(1.0.21).
+
 ## [0.3.0] - 2023-12-20
 
 ### Added
