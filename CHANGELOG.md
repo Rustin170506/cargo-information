@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.4.0] - 2024-01-05
+
 ### Added
 
 - Prioritize selection of Minimum Supported Rust Version (MSRV) compatible crate versions. The following hierarchy is used to determine the MSRV:
