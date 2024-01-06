@@ -28,3 +28,7 @@ trycmd = "0.14.19"
 
 [[bin]]
 name = "cargo-info"
+
+[features]
+vendored-openssl = ["cargo/vendored-openssl"]
+default = []
