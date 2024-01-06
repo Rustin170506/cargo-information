@@ -31,6 +31,12 @@ or if you want to install the latest version from the main branch:
 cargo install cargo-information --git https://github.com/hi-rustin/cargo-information.git
 ```
 
+This library depends on OpenSSL. You may need to install OpenSSL on your system before installing `cargo-info`. Or you can use the `vendored-openssl` feature to use the vendored version of OpenSSL:
+
+```bash
+cargo install cargo-information --features vendored-openssl
+```
+
 ### Arch Linux
 
 `cargo-info` can be installed from the [AUR](https://aur.archlinux.org/packages?O=0&SeB=nd&K=cargo-information&outdated=&SB=p&SO=d&PP=50&submit=Go) using an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers). For example:
