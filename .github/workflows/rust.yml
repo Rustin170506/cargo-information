@@ -83,3 +83,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: rustup update --no-self-update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
       - run: cargo test
+      - run: cargo build --features=vendored-openssl
+        if: >
+          matrix.name == 'Linux x86_64 stable' ||
+          matrix.name == 'Linux x86_64 beta' ||
+          matrix.name == 'Linux x86_64 nightly' ||
+          matrix.name == 'macOS x86_64 stable' ||
+          matrix.name == 'macOS x86_64 nightly'
