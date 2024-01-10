@@ -4,6 +4,14 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Introduced the `vendored-openssl` feature to enable the use of the vendored version of OpenSSL.
+
+### Changed
+
+- Updated the clap dependency to 4.4.14.
+
 ## [0.4.0] - 2024-01-05
 
 ### Added
