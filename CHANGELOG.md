@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.4.1] - 2024-01-11
+
 ### Added
 
 - Introduced the `vendored-openssl` feature to enable the use of the vendored version of OpenSSL.
