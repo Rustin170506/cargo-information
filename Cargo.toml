@@ -24,7 +24,7 @@ semver = "1.0.21"
 cargo-test-macro = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-test-support = { git = "https://github.com/rust-lang/cargo.git" }
 snapbox = "0.4.16"
-trycmd = "0.14.19"
+trycmd = "0.14.20"
 
 [[bin]]
 name = "cargo-info"

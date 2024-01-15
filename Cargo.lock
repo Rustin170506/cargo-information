@@ -3041,9 +3041,9 @@ dependencies = [
 
 [[package]]
 name = "trycmd"
-version = "0.14.19"
+version = "0.14.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed009372a42fb103e6f8767b9222925485e03cca032b700d203e2c5b67bee4fb"
+checksum = "b7ad3a033f38ca4d9eedf36ba792622027119c61b62b57970c5bed42cfd0c40d"
 dependencies = [
  "glob",
  "humantime",
@@ -3052,7 +3052,7 @@ dependencies = [
  "serde",
  "shlex",
  "snapbox",
- "toml_edit 0.20.7",
+ "toml_edit 0.21.0",
 ]
 
 [[package]]
