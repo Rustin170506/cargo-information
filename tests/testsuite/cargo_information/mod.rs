@@ -2,6 +2,7 @@ use cargo_test_support::{compare, TestEnv};
 
 mod basic;
 mod features;
+mod git_dependency;
 mod help;
 mod not_found;
 mod path_dependency;
