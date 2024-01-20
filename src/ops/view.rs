@@ -166,17 +166,26 @@ fn print_deps(
         }
         .render();
         let reset = anstyle::Reset.render();
-        let source = if dependency.source_id().is_registry() {
-            String::new()
+        // 1. Only print the version requirement if it is a registry dependency.
+        // 2. Only print the source if it is not a registry dependency.
+        // For example: `bar (./crates/bar)` or `bar@=1.2.3`.
+        let (req, source) = if dependency.source_id().is_registry() {
+            (
+                format!("@{}", pretty_req(dependency.version_req())),
+                String::new(),
+            )
         } else {
-            format!(" ({})", pretty_source(dependency.source_id(), config))
+            (
+                String::new(),
+                format!(" ({})", pretty_source(dependency.source_id(), config)),
+            )
         };
 
         writeln!(
             stdout,
-            "  {style}{}@{}{}{reset}",
+            "  {style}{}{}{}{reset}",
             dependency.package_name(),
-            pretty_req(dependency.version_req()),
+            req,
             source
         )?;
     }
