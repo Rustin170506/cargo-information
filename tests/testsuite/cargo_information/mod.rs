@@ -2,8 +2,10 @@ use cargo_test_support::{compare, TestEnv};
 
 mod basic;
 mod features;
+mod git_dependency;
 mod help;
 mod not_found;
+mod path_dependency;
 mod pick_msrv_compatible_package;
 mod pick_msrv_compatible_package_within_ws;
 mod pick_msrv_compatible_package_within_ws_and_use_msrv_from_ws;

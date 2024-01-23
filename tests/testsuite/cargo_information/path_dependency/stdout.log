@@ -1,0 +1,6 @@
+foo
+version: 0.0.0 (from ./)
+license: unknown
+rust-version: unknown
+dependencies:
+  crate1 (./crates/crate1)
