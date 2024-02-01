@@ -302,7 +302,7 @@ fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoRes
     let reset = anstyle::Reset.render();
 
     note(format_args!(
-        "to see how you depend on {name}, run `{literal}cargo tree --package {name}@{version} --invert{reset}`",
+        "to see how you depend on {name}, run `{literal}cargo tree --invert --package {name}@{version}{reset}`",
         name = package_id.name(),
         version = package_id.version(),
     ), stdout)
