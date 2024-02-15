@@ -1,1 +1,1 @@
-error: package ID specification must have a name
+error: package name cannot be empty

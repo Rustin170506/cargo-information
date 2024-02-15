@@ -4,6 +4,7 @@ use std::task::Poll;
 
 use anyhow::{bail, Context as _};
 use cargo::core::registry::PackageRegistry;
+use cargo::core::PackageIdSpecQuery;
 use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
@@ -117,10 +118,12 @@ fn query_and_pretty_view(
                 .max_by(|s1, s2| {
                     // Check the MSRV compatibility.
                     let s1_matches = s1
+                        .as_summary()
                         .rust_version()
                         .map(|v| v.to_caret_req().matches(rustc_version))
                         .unwrap_or_else(|| false);
                     let s2_matches = s2
+                        .as_summary()
                         .rust_version()
                         .map(|v| v.to_caret_req().matches(rustc_version))
                         .unwrap_or_else(|| false);

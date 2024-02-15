@@ -1,8 +1,8 @@
 use std::io::Write;
 
 use cargo::{
-    core::SourceId,
-    core::{dependency::DepKind, Dependency, FeatureMap, Package, PackageId, Summary},
+    core::{dependency::DepKind, Dependency, FeatureMap, Package, PackageId, SourceId},
+    sources::IndexSummary,
     CargoResult, Config,
 };
 
@@ -11,7 +11,7 @@ use super::style::{ERROR, HEADER, LITERAL, NOP, NOTE, WARN};
 // Pretty print the package information.
 pub(super) fn pretty_view(
     package: &Package,
-    summaries: &[Summary],
+    summaries: &[IndexSummary],
     owners: &Option<Vec<String>>,
     suggest_cargo_tree_command: bool,
     config: &Config,
@@ -39,19 +39,23 @@ pub(super) fn pretty_view(
     // 1. The package version is not the latest available version.
     // 2. The package source is not crates.io.
     match (
-        summaries.iter().max_by_key(|s| s.version()),
+        summaries.iter().max_by_key(|s| s.as_summary().version()),
         summary.source_id().is_crates_io(),
     ) {
-        (Some(latest), false) if latest.version() != package_id.version() => {
+        (Some(latest), false) if latest.as_summary().version() != package_id.version() => {
             write!(
                 stdout,
                 " {warn}(latest {} {note}from {}{warn}){reset}",
-                latest.version(),
+                latest.as_summary().version(),
                 pretty_source(summary.source_id(), config)
             )?;
         }
-        (Some(latest), true) if latest.version() != package_id.version() => {
-            write!(stdout, " {warn}(latest {}){reset}", latest.version(),)?;
+        (Some(latest), true) if latest.as_summary().version() != package_id.version() => {
+            write!(
+                stdout,
+                " {warn}(latest {}){reset}",
+                latest.as_summary().version(),
+            )?;
         }
         (_, false) => {
             write!(
