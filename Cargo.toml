@@ -10,9 +10,9 @@ rust-version = "1.73"
 [dependencies]
 anstyle = "1.0.6"
 anyhow = "1.0.79"
-cargo = { version = "0.76.0" }
+cargo = { version = "0.77.0" }
 cargo-credential = { version = "0.4.2" }
-cargo-util = "0.2.8"
+cargo-util = "0.2.9"
 clap = "4.5.0"
 color-print = "0.3.5"
 crates-io = "0.39.1"
