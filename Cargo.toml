@@ -13,7 +13,7 @@ anyhow = "1.0.79"
 cargo = { version = "0.76.0" }
 cargo-credential = { version = "0.4.2" }
 cargo-util = "0.2.8"
-clap = "4.4.18"
+clap = "4.5.0"
 color-print = "0.3.5"
 crates-io = "0.39.1"
 pathdiff = "0.2.1"
