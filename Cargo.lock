@@ -307,7 +307,7 @@ dependencies = [
  "crates-io 0.39.1",
  "pathdiff",
  "semver",
- "snapbox",
+ "snapbox 0.4.16",
  "trycmd",
 ]
 
@@ -344,7 +344,7 @@ dependencies = [
  "pasetors",
  "serde",
  "serde_json",
- "snapbox",
+ "snapbox 0.4.16",
  "tar",
  "time",
  "toml",
@@ -976,7 +976,7 @@ dependencies = [
  "gix-date",
  "itoa",
  "thiserror",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -1055,7 +1055,7 @@ dependencies = [
  "smallvec",
  "thiserror",
  "unicode-bom",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -1308,7 +1308,7 @@ dependencies = [
  "itoa",
  "smallvec",
  "thiserror",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -1428,7 +1428,7 @@ dependencies = [
  "gix-transport",
  "maybe-async",
  "thiserror",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -1460,7 +1460,7 @@ dependencies = [
  "gix-validate",
  "memmap2 0.7.1",
  "thiserror",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -2733,6 +2733,24 @@ dependencies = [
  "content_inspector",
  "dunce",
  "filetime",
+ "normalize-line-endings",
+ "similar",
+ "snapbox-macros",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "snapbox"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8269b717f21b142c0377f1e617e80999e3ef6b1c010959b44fd93320722d2cba"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "content_inspector",
+ "dunce",
+ "filetime",
  "libc",
  "normalize-line-endings",
  "os_pipe",
@@ -2746,9 +2764,9 @@ dependencies = [
 
 [[package]]
 name = "snapbox-macros"
-version = "0.3.7"
+version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "78ccde059aad940984ff696fe8c280900f7ea71a6fb45fce65071a3f2c40b667"
+checksum = "e1c4b838b05d15ab22754068cb73500b2f3b07bf09d310e15b27f88160f1de40"
 dependencies = [
  "anstream",
 ]
@@ -2962,7 +2980,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.31",
 ]
 
 [[package]]
@@ -2975,7 +2993,20 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.31",
+]
+
+[[package]]
+name = "toml_edit"
+version = "0.22.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99e68c159e8f5ba8a28c4eb7b0c0c190d77bb479047ca713270048145a9ad28a"
+dependencies = [
+ "indexmap",
+ "serde",
+ "serde_spanned",
+ "toml_datetime",
+ "winnow 0.6.1",
 ]
 
 [[package]]
@@ -3041,9 +3072,9 @@ dependencies = [
 
 [[package]]
 name = "trycmd"
-version = "0.14.20"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b7ad3a033f38ca4d9eedf36ba792622027119c61b62b57970c5bed42cfd0c40d"
+checksum = "464edb3603a81a50b4c8f47b11dfade69ef48ffdc0af2f8b194ad87cbda75317"
 dependencies = [
  "glob",
  "humantime",
@@ -3051,8 +3082,8 @@ dependencies = [
  "rayon",
  "serde",
  "shlex",
- "snapbox",
- "toml_edit 0.21.0",
+ "snapbox 0.5.0",
+ "toml_edit 0.22.5",
 ]
 
 [[package]]
@@ -3400,6 +3431,15 @@ name = "winnow"
 version = "0.5.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97a4882e6b134d6c28953a387571f1acdd3496830d5e36c5e3a1075580ea641c"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d90f4e0f530c4c69f62b80d839e9ef3855edc9cba471a160c4d692deed62b401"
 dependencies = [
  "memchr",
 ]
