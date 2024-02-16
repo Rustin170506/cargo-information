@@ -1,5 +1,6 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{compare::assert_ui, curr_dir, registry::RegistryBuilder, Project};
+use cargo_test_support::{compare::assert_ui, registry::RegistryBuilder, Project};
+use snapbox::{current_dir, file};
 
 use super::cargo_info;
 
@@ -13,7 +14,7 @@ fn case() {
         .alternative(true)
         .publish();
 
-    let project = Project::from_template(curr_dir!().join("in"));
+    let project = Project::from_template(current_dir!().join("in"));
     let project_root = project.root();
     let cwd = &project_root;
 
@@ -23,8 +24,8 @@ fn case() {
         .current_dir(cwd)
         .assert()
         .success()
-        .stdout_matches_path(curr_dir!().join("stdout.log"))
-        .stderr_matches_path(curr_dir!().join("stderr.log"));
+        .stdout_matches(file!["stdout.log"])
+        .stderr_matches(file!["stderr.log"]);
 
-    assert_ui().subset_matches(curr_dir!().join("out"), &project_root);
+    assert_ui().subset_matches(current_dir!().join("out"), &project_root);
 }

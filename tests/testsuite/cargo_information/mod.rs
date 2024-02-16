@@ -1,4 +1,4 @@
-use cargo_test_support::{compare, TestEnv};
+use cargo_test_support::compare::assert_ui;
 
 mod basic;
 mod features;
@@ -28,7 +28,7 @@ mod within_ws_without_lockfile;
 // Invoke `cargo-info info` with the test environment.
 pub(crate) fn cargo_info() -> snapbox::cmd::Command {
     snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
-        .with_assert(compare::assert_ui())
+        .with_assert(assert_ui())
         .test_env()
         .arg("info")
         .arg("--color=never")

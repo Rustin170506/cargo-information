@@ -1,5 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::curr_dir;
+use snapbox::file;
 
 use super::{cargo_info, init_registry_without_token};
 
@@ -17,6 +17,6 @@ fn case() {
         .arg("--registry=dummy-registry")
         .assert()
         .success()
-        .stdout_matches_path(curr_dir!().join("stdout.log"))
-        .stderr_matches_path(curr_dir!().join("stderr.log"));
+        .stdout_matches(file!["stdout.log"])
+        .stderr_matches(file!["stderr.log"]);
 }
