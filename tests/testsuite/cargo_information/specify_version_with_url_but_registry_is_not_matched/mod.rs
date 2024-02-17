@@ -1,6 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::registry::RegistryBuilder;
-use snapbox::file;
+use cargo_test_support::{file, registry::RegistryBuilder};
 
 use super::cargo_info;
 

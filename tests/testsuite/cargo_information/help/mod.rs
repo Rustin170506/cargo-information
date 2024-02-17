@@ -1,5 +1,5 @@
 use cargo_test_macro::cargo_test;
-use snapbox::file;
+use cargo_test_support::file;
 
 use super::cargo_info;
 

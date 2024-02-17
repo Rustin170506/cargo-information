@@ -1,5 +1,4 @@
-use cargo_test_support::compare::assert_ui;
-use cargo_test_support::TestEnv;
+use cargo_test_support::{compare::assert_ui, TestEnv};
 
 mod basic;
 mod features;

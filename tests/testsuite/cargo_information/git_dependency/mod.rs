@@ -1,6 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{basic_manifest, git, project};
-use snapbox::file;
+use cargo_test_support::{basic_manifest, file, git, project};
 
 use super::{cargo_info, init_registry_without_token};
 

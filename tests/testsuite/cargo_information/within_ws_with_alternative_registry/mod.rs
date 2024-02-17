@@ -1,6 +1,6 @@
 use cargo_test_macro::cargo_test;
 use cargo_test_support::{compare::assert_ui, registry::RegistryBuilder, Project};
-use snapbox::{current_dir, file};
+use cargo_test_support::{current_dir, file};
 
 use super::cargo_info;
 

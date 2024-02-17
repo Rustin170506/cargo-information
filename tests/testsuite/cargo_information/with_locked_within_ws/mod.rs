@@ -1,6 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{compare::assert_ui, Project};
-use snapbox::{current_dir, file};
+use cargo_test_support::{compare::assert_ui, current_dir, file, Project};
 
 use super::{cargo_info, init_registry_without_token};
 
