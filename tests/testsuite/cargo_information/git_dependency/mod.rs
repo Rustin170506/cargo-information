@@ -1,5 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{basic_manifest, curr_dir, git, project};
+use cargo_test_support::{basic_manifest, file, git, project};
 
 use super::{cargo_info, init_registry_without_token};
 
@@ -38,6 +38,6 @@ fn case() {
         .current_dir(cwd)
         .assert()
         .success()
-        .stdout_matches_path(curr_dir!().join("stdout.log"))
-        .stderr_matches_path(curr_dir!().join("stderr.log"));
+        .stdout_matches(file!["stdout.log"])
+        .stderr_matches(file!["stderr.log"]);
 }
