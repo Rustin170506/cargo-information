@@ -4,6 +4,15 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Show source ID information for dependencies not from the registry.
+
+### Changed
+
+- Reorder suggested cargo-tree parameters to align with other cargo commands.
+- Dependency updates and patches, including updates to rust crate cargo(0.77.0), snapbox(0.5.1), crates-io(0.39.2), anstyle(1.0.6), trycmd(0.15.0), clap(4.5.0) and cargo-credential (0.4.2).
+
 ## [0.4.1] - 2024-01-11
 
 ### Added
