@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.4.2] - 2024-02-20
+
 ### Added
 
 - Show source ID information for dependencies not from the registry.
