@@ -1,11 +1,11 @@
 use cargo_test_macro::cargo_test;
 use cargo_test_support::file;
 
-use super::cargo_info;
+use super::cargo_info_with_color;
 
 #[cargo_test]
 fn case() {
-    cargo_info()
+    cargo_info_with_color()
         .arg("--help")
         .arg("--registry=dummy-registry")
         .assert()

@@ -34,6 +34,15 @@ pub(crate) fn cargo_info() -> snapbox::cmd::Command {
         .arg("--color=never")
 }
 
+// Invoke `cargo-info info` with the test environment and color.
+pub(crate) fn cargo_info_with_color() -> snapbox::cmd::Command {
+    snapbox::cmd::Command::new(snapbox::cmd::cargo_bin("cargo-info"))
+        .with_assert(assert_ui())
+        .test_env()
+        .arg("info")
+        .arg("--color=always")
+}
+
 // Initialize the registry without a token.
 // Otherwise, it will try to list owners of the crate and fail.
 pub(crate) fn init_registry_without_token() {

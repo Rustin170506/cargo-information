@@ -48,7 +48,7 @@ pub(super) fn pretty_view(
         (Some(latest), false) if latest.as_summary().version() != package_id.version() => {
             write!(
                 stdout,
-                " {warn}(latest {} {note}from {}{warn}){warn:#}",
+                " {warn}(latest {} {warn:#}{note}from {}{note:#}{warn}){warn:#}",
                 latest.as_summary().version(),
                 pretty_source(summary.source_id(), config)
             )?;
