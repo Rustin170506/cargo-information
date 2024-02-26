@@ -20,21 +20,24 @@ pub(super) fn pretty_view(
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
-    let header = HEADER.render();
-    let error = ERROR.render();
-    let warn = WARN.render();
-    let note = NOTE.render();
-    let reset = anstyle::Reset.render();
+    let header = HEADER;
+    let error = ERROR;
+    let warn = WARN;
+    let note = NOTE;
 
-    write!(stdout, "{header}{}{reset}", package_id.name())?;
+    write!(stdout, "{header}{}{header:#}", package_id.name())?;
     if !metadata.keywords.is_empty() {
-        write!(stdout, " {note}#{}{reset}", metadata.keywords.join(" #"))?;
+        write!(stdout, " {note}#{}{note:#}", metadata.keywords.join(" #"))?;
     }
     writeln!(stdout)?;
     if let Some(ref description) = metadata.description {
         writeln!(stdout, "{}", description.trim_end())?;
     }
-    write!(stdout, "{header}version:{reset} {}", package_id.version())?;
+    write!(
+        stdout,
+        "{header}version:{header:#} {}",
+        package_id.version()
+    )?;
     // Add a warning message to stdout if the following conditions are met:
     // 1. The package version is not the latest available version.
     // 2. The package source is not crates.io.
@@ -45,7 +48,7 @@ pub(super) fn pretty_view(
         (Some(latest), false) if latest.as_summary().version() != package_id.version() => {
             write!(
                 stdout,
-                " {warn}(latest {} {note}from {}{warn}){reset}",
+                " {warn}(latest {} {note}from {}{warn}){warn:#}",
                 latest.as_summary().version(),
                 pretty_source(summary.source_id(), config)
             )?;
@@ -53,14 +56,14 @@ pub(super) fn pretty_view(
         (Some(latest), true) if latest.as_summary().version() != package_id.version() => {
             write!(
                 stdout,
-                " {warn}(latest {}){reset}",
+                " {warn}(latest {}){warn:#}",
                 latest.as_summary().version(),
             )?;
         }
         (_, false) => {
             write!(
                 stdout,
-                " {note}(from {}){reset}",
+                " {note}(from {}){note:#}",
                 pretty_source(summary.source_id(), config)
             )?;
         }
@@ -69,21 +72,21 @@ pub(super) fn pretty_view(
     writeln!(stdout)?;
     writeln!(
         stdout,
-        "{header}license:{reset} {}",
+        "{header}license:{header:#} {}",
         metadata
             .license
             .clone()
-            .unwrap_or_else(|| format!("{error}unknown{reset}"))
+            .unwrap_or_else(|| format!("{error}unknown{error:#}"))
     )?;
     // TODO: color MSRV as a warning if newer than either the "workspace" MSRV or `rustc --version`
     writeln!(
         stdout,
-        "{header}rust-version:{reset} {}",
+        "{header}rust-version:{header:#} {}",
         metadata
             .rust_version
             .as_ref()
             .map(|v| v.to_string())
-            .unwrap_or_else(|| format!("{warn}unknown{reset}"))
+            .unwrap_or_else(|| format!("{warn}unknown{warn:#}"))
     )?;
     if let Some(ref link) = metadata.documentation.clone().or_else(|| {
         summary.source_id().is_crates_io().then(|| {
@@ -94,13 +97,13 @@ pub(super) fn pretty_view(
             )
         })
     }) {
-        writeln!(stdout, "{header}documentation:{reset} {link}")?;
+        writeln!(stdout, "{header}documentation:{header:#} {link}")?;
     }
     if let Some(ref link) = metadata.homepage {
-        writeln!(stdout, "{header}homepage:{reset} {link}")?;
+        writeln!(stdout, "{header}homepage:{header:#} {link}")?;
     }
     if let Some(ref link) = metadata.repository {
-        writeln!(stdout, "{header}repository:{reset} {link}")?;
+        writeln!(stdout, "{header}repository:{header:#} {link}")?;
     }
 
     pretty_features(summary.features(), stdout)?;
@@ -131,8 +134,7 @@ fn pretty_source(source: SourceId, config: &Config) -> String {
 }
 
 fn pretty_deps(package: &Package, stdout: &mut dyn Write, config: &Config) -> CargoResult<()> {
-    let header = HEADER.render();
-    let reset = anstyle::Reset.render();
+    let header = HEADER;
 
     let dependencies = package
         .dependencies()
@@ -140,7 +142,7 @@ fn pretty_deps(package: &Package, stdout: &mut dyn Write, config: &Config) -> Ca
         .filter(|d| d.kind() == DepKind::Normal)
         .collect::<Vec<_>>();
     if !dependencies.is_empty() {
-        writeln!(stdout, "{header}dependencies:{reset}")?;
+        writeln!(stdout, "{header}dependencies:{header:#}")?;
         print_deps(dependencies, stdout, config)?;
     }
 
@@ -150,7 +152,7 @@ fn pretty_deps(package: &Package, stdout: &mut dyn Write, config: &Config) -> Ca
         .filter(|d| d.kind() == DepKind::Build)
         .collect::<Vec<_>>();
     if !build_dependencies.is_empty() {
-        writeln!(stdout, "{header}build-dependencies:{reset}")?;
+        writeln!(stdout, "{header}build-dependencies:{header:#}")?;
         print_deps(build_dependencies, stdout, config)?;
     }
 
@@ -167,9 +169,7 @@ fn print_deps(
             anstyle::Style::new() | anstyle::Effects::DIMMED
         } else {
             Default::default()
-        }
-        .render();
-        let reset = anstyle::Reset.render();
+        };
         // 1. Only print the version requirement if it is a registry dependency.
         // 2. Only print the source if it is not a registry dependency.
         // For example: `bar (./crates/bar)` or `bar@=1.2.3`.
@@ -187,7 +187,7 @@ fn print_deps(
 
         writeln!(
             stdout,
-            "  {style}{}{}{}{reset}",
+            "  {style}{}{}{}{style:#}",
             dependency.package_name(),
             req,
             source
@@ -215,10 +215,9 @@ fn pretty_req(req: &cargo::util::OptVersionReq) -> String {
 }
 
 fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult<()> {
-    let header = HEADER.render();
-    let enabled = LITERAL.render();
-    let disabled = NOP.render();
-    let reset = anstyle::Reset.render();
+    let header = HEADER;
+    let enabled = LITERAL;
+    let disabled = NOP;
 
     // If there are no features, return early.
     let margin = features
@@ -230,7 +229,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         return Ok(());
     }
 
-    writeln!(stdout, "{header}features:{reset}")?;
+    writeln!(stdout, "{header}features:{header:#}")?;
 
     let default_feature = cargo::util::interning::InternedString::new("default");
     let mut root_activated = Vec::new();
@@ -247,10 +246,10 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
             };
             writeln!(
                 stdout,
-                "  {enabled}{current: <margin$}{reset} = [{features}]",
+                "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
                 features = current_activated
                     .iter()
-                    .map(|s| format!("{enabled}{s}{reset}"))
+                    .map(|s| format!("{enabled}{s}{enabled:#}"))
                     .collect::<Vec<String>>()
                     .join(", ")
             )?;
@@ -269,10 +268,10 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         };
         writeln!(
             stdout,
-            "  {disabled}{current: <margin$}{reset} = [{features}]",
+            "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
             features = current_activated
                 .iter()
-                .map(|s| format!("{disabled}{s}{reset}"))
+                .map(|s| format!("{disabled}{s}{disabled:#}"))
                 .collect::<Vec<String>>()
                 .join(", ")
         )?;
@@ -287,11 +286,10 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
 }
 
 fn pretty_owners(owners: &Vec<String>, stdout: &mut dyn Write) -> CargoResult<()> {
-    let header = HEADER.render();
-    let reset = anstyle::Reset.render();
+    let header = HEADER;
 
     if !owners.is_empty() {
-        writeln!(stdout, "{header}owners:{reset}",)?;
+        writeln!(stdout, "{header}owners:{header:#}",)?;
         for owner in owners {
             writeln!(stdout, "  {}", owner)?;
         }
@@ -302,22 +300,20 @@ fn pretty_owners(owners: &Vec<String>, stdout: &mut dyn Write) -> CargoResult<()
 
 // Suggest the cargo tree command to view the dependency tree.
 fn suggest_cargo_tree(package_id: PackageId, stdout: &mut dyn Write) -> CargoResult<()> {
-    let literal = LITERAL.render();
-    let reset = anstyle::Reset.render();
+    let literal = LITERAL;
 
     note(format_args!(
-        "to see how you depend on {name}, run `{literal}cargo tree --invert --package {name}@{version}{reset}`",
+        "to see how you depend on {name}, run `{literal}cargo tree --invert --package {name}@{version}{literal:#}`",
         name = package_id.name(),
         version = package_id.version(),
     ), stdout)
 }
 
 pub(super) fn note(msg: impl std::fmt::Display, stdout: &mut dyn Write) -> CargoResult<()> {
-    let note = NOTE.render();
-    let bold = (anstyle::Style::new() | anstyle::Effects::BOLD).render();
-    let reset = anstyle::Reset.render();
+    let note = NOTE;
+    let bold = anstyle::Style::new() | anstyle::Effects::BOLD;
 
-    writeln!(stdout, "{note}note{reset}{bold}:{reset} {msg}",)?;
+    writeln!(stdout, "{note}note{note:#}{bold}:{bold:#} {msg}",)?;
 
     Ok(())
 }
