@@ -1,7 +1,7 @@
 use cargo_test_macro::cargo_test;
 use cargo_test_support::file;
 
-use super::{cargo_info, init_registry_without_token};
+use super::{cargo_info_with_color, init_registry_without_token};
 
 #[cargo_test]
 fn case() {
@@ -41,11 +41,11 @@ fn case() {
         .file("src/bin/my_bin.rs", "")
         .file("src/lib.rs", "")
         .publish();
-    cargo_info()
+    cargo_info_with_color()
         .arg("my-package")
         .arg("--registry=dummy-registry")
         .assert()
         .success()
-        .stdout_matches(file!["stdout.log"])
-        .stderr_matches(file!["stderr.log"]);
+        .stdout_matches(file!["stdout.term.svg"])
+        .stderr_matches(file!["stderr.term.svg"]);
 }
