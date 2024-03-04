@@ -105,6 +105,15 @@ pub(super) fn pretty_view(
     if let Some(ref link) = metadata.repository {
         writeln!(stdout, "{header}repository:{header:#} {link}")?;
     }
+    // Only print the crates.io link if the package is from crates.io.
+    if summary.source_id().is_crates_io() {
+        writeln!(
+            stdout,
+            "{header}crates.io:{header:#} https://crates.io/crates/{}/{}",
+            package_id.name(),
+            package_id.version()
+        )?;
+    }
 
     pretty_features(summary.features(), stdout)?;
 
