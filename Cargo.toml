@@ -9,7 +9,7 @@ rust-version = "1.73"
 
 [dependencies]
 anstyle = "1.0.6"
-anyhow = "1.0.80"
+anyhow = "1.0.81"
 cargo = { version = "0.77.0" }
 cargo-credential = { version = "0.4.2" }
 cargo-util = "0.2.9"
