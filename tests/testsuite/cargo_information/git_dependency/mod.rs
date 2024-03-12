@@ -27,7 +27,7 @@ fn case() {
                 baz.url()
             ),
         )
-        .file("src/lib.rs", &format!(""))
+        .file("src/lib.rs", "")
         .build();
 
     let project_root = foo.root();
