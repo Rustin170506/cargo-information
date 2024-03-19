@@ -1,5 +1,5 @@
 use cargo_test_macro::cargo_test;
-use cargo_test_support::{compare::assert_ui, current_dir, file, Project};
+use cargo_test_support::{compare::assert_ui, current_dir, file, ArgLine as _, Project};
 
 use super::{cargo_info, init_registry_without_token};
 
@@ -12,7 +12,7 @@ fn case() {
     let cwd = &project_root;
 
     cargo_info()
-        .arg("foo")
+        .arg_line("--verbose foo")
         .current_dir(cwd)
         .assert()
         .success()

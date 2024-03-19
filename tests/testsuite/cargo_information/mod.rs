@@ -14,6 +14,7 @@ mod specify_version_outside_ws;
 mod specify_version_with_url_but_registry_is_not_matched;
 mod specify_version_within_ws_and_conflict_with_lockfile;
 mod specify_version_within_ws_and_match_with_lockfile;
+mod verbose;
 mod with_frozen_outside_ws;
 mod with_frozen_within_ws;
 mod with_locked_outside_ws;

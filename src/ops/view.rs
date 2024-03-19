@@ -1,7 +1,9 @@
 use std::io::Write;
 
 use cargo::{
-    core::{dependency::DepKind, Dependency, FeatureMap, Package, PackageId, SourceId},
+    core::{
+        dependency::DepKind, shell::Verbosity, Dependency, FeatureMap, Package, PackageId, SourceId,
+    },
     sources::IndexSummary,
     CargoResult, Config,
 };
@@ -25,6 +27,7 @@ pub(super) fn pretty_view(
     let note = NOTE;
 
     let mut shell = config.shell();
+    let verbosity = shell.verbosity();
     let stdout = shell.out();
     write!(stdout, "{header}{}{header:#}", package_id.name())?;
     if !metadata.keywords.is_empty() {
@@ -118,7 +121,7 @@ pub(super) fn pretty_view(
 
     pretty_features(summary.features(), stdout)?;
 
-    pretty_deps(package, stdout, config)?;
+    pretty_deps(package, verbosity, stdout, config)?;
 
     if let Some(owners) = owners {
         pretty_owners(owners, stdout)?;
@@ -143,7 +146,19 @@ fn pretty_source(source: SourceId, config: &Config) -> String {
     }
 }
 
-fn pretty_deps(package: &Package, stdout: &mut dyn Write, config: &Config) -> CargoResult<()> {
+fn pretty_deps(
+    package: &Package,
+    verbosity: Verbosity,
+    stdout: &mut dyn Write,
+    config: &Config,
+) -> CargoResult<()> {
+    match verbosity {
+        Verbosity::Quiet | Verbosity::Normal => {
+            return Ok(());
+        }
+        Verbosity::Verbose => {}
+    }
+
     let header = HEADER;
 
     let dependencies = package
