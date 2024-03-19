@@ -15,7 +15,6 @@ pub(super) fn pretty_view(
     owners: &Option<Vec<String>>,
     suggest_cargo_tree_command: bool,
     config: &Config,
-    stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
@@ -25,6 +24,8 @@ pub(super) fn pretty_view(
     let warn = WARN;
     let note = NOTE;
 
+    let mut shell = config.shell();
+    let stdout = shell.out();
     write!(stdout, "{header}{}{header:#}", package_id.name())?;
     if !metadata.keywords.is_empty() {
         write!(stdout, " {note}#{}{note:#}", metadata.keywords.join(" #"))?;
