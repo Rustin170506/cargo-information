@@ -153,15 +153,12 @@ fn query_and_pretty_view(
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
     let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
-    let mut shell = config.shell();
-    let stdout = shell.out();
     pretty_view(
         package,
         &summaries,
         &owners,
         suggest_cargo_tree_command,
         config,
-        stdout,
     )?;
 
     Ok(())
