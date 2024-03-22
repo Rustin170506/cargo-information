@@ -62,22 +62,28 @@ pub fn info(
             )
         }
     };
-
     // Only suggest cargo tree command when the package is not a workspace member.
     // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
     let suggest_cargo_tree_command = package_id.is_some() && !is_member;
-    let summaries = query_summaries(spec, &mut registry, &source_ids)?;
 
-    query_and_pretty_view(
+    let summaries = query_summaries(spec, &mut registry, &source_ids)?;
+    let package_id = match package_id {
+        Some(id) => id,
+        None => find_pkgid_in_summaries(&summaries, spec, &rustc_version, &source_ids)?,
+    };
+
+    let package = registry.get(&[package_id])?;
+    let package = package.get_one(package_id)?;
+    let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
+    pretty_view(
+        package,
         &summaries,
-        spec,
-        package_id,
-        config,
-        registry,
-        source_ids,
-        &rustc_version,
+        &owners,
         suggest_cargo_tree_command,
-    )
+        config,
+    )?;
+
+    Ok(())
 }
 
 fn find_pkgid_in_ws(
@@ -139,37 +145,6 @@ fn find_pkgid_in_summaries(
             )
         }
     }
-}
-
-// Query the package registry and pretty print the result.
-// If package_id is None, find the latest version.
-fn query_and_pretty_view(
-    summaries: &[IndexSummary],
-    spec: &PackageIdSpec,
-    package_id: Option<PackageId>,
-    config: &Config,
-    registry: PackageRegistry,
-    source_ids: RegistrySourceIds,
-    rustc_version: &semver::Version,
-    suggest_cargo_tree_command: bool,
-) -> CargoResult<()> {
-    let package_id = match package_id {
-        Some(id) => id,
-        None => find_pkgid_in_summaries(summaries, spec, rustc_version, &source_ids)?,
-    };
-
-    let package = registry.get(&[package_id])?;
-    let package = package.get_one(package_id)?;
-    let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
-    pretty_view(
-        package,
-        summaries,
-        &owners,
-        suggest_cargo_tree_command,
-        config,
-    )?;
-
-    Ok(())
 }
 
 fn query_summaries(
