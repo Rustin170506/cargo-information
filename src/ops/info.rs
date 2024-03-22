@@ -35,17 +35,7 @@ pub fn info(
     let ws = root_manifest
         .as_ref()
         .and_then(|root| Workspace::new(root, config).ok());
-    let (mut package_id, is_member) = ws
-        .as_ref()
-        .and_then(|ws| ops::resolve_ws(ws).map(|(_, resolve)| (ws, resolve)).ok())
-        .and_then(|(ws, resolve)| {
-            let package_id = resolve
-                .iter()
-                .filter(|&p| spec.matches(p))
-                .max_by_key(|&p| p.version());
-            package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
-        })
-        .unwrap_or((None, false));
+    let (mut package_id, is_member) = find_pkgid_in_ws(ws.as_ref(), spec);
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
     if !use_package_source_id {
@@ -84,6 +74,24 @@ pub fn info(
         &rustc_version,
         suggest_cargo_tree_command,
     )
+}
+
+fn find_pkgid_in_ws(
+    ws: Option<&cargo::core::Workspace<'_>>,
+    spec: &PackageIdSpec,
+) -> (Option<PackageId>, bool) {
+    let (package_id, is_member) = ws
+        .as_ref()
+        .and_then(|ws| ops::resolve_ws(ws).map(|(_, resolve)| (ws, resolve)).ok())
+        .and_then(|(ws, resolve)| {
+            let package_id = resolve
+                .iter()
+                .filter(|&p| spec.matches(p))
+                .max_by_key(|&p| p.version());
+            package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
+        })
+        .unwrap_or((None, false));
+    (package_id, is_member)
 }
 
 // Query the package registry and pretty print the result.
