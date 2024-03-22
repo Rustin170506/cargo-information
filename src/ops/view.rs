@@ -289,6 +289,15 @@ fn pretty_features(
         Verbosity::Verbose => true,
     };
     if total_activated <= MAX_FEATURE_PRINTS || show_all {
+        activated.sort_by_key(|(name, _)| {
+            // sort `default` first
+            if name == "default" {
+                None
+            } else {
+                Some(name.to_owned())
+            }
+        });
+
         for (current, current_activated) in activated {
             writeln!(
                 stdout,
