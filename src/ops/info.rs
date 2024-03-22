@@ -8,6 +8,7 @@ use cargo::core::PackageIdSpecQuery;
 use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
+use cargo::sources::IndexSummary;
 use cargo::sources::{RegistrySource, SourceConfigMap};
 use cargo::util::auth::{auth_token, AuthorizationErrorReason};
 use cargo::util::cache_lock::CacheLockMode;
@@ -105,17 +106,7 @@ fn query_and_pretty_view(
     rustc_version: &semver::Version,
     suggest_cargo_tree_command: bool,
 ) -> CargoResult<()> {
-    // Query without version requirement to get all index summaries.
-    let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
-    let summaries = loop {
-        // Exact to avoid returning all for path/git
-        match registry.query_vec(&dep, QueryKind::Exact) {
-            std::task::Poll::Ready(res) => {
-                break res?;
-            }
-            std::task::Poll::Pending => registry.block_until_ready()?,
-        }
-    };
+    let summaries = query_summaries(spec, &mut registry, &source_ids)?;
 
     let package_id = match package_id {
         Some(id) => id,
@@ -170,6 +161,24 @@ fn query_and_pretty_view(
     )?;
 
     Ok(())
+}
+
+fn query_summaries(
+    spec: &PackageIdSpec,
+    registry: &mut PackageRegistry,
+    source_ids: &RegistrySourceIds,
+) -> CargoResult<Vec<IndexSummary>> {
+    // Query without version requirement to get all index summaries.
+    let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
+    loop {
+        // Exact to avoid returning all for path/git
+        match registry.query_vec(&dep, QueryKind::Exact) {
+            std::task::Poll::Ready(res) => {
+                break res;
+            }
+            std::task::Poll::Pending => registry.block_until_ready()?,
+        }
+    }
 }
 
 // Try to list the login and name of all owners of a crate.
