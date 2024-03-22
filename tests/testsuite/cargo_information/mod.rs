@@ -2,6 +2,8 @@ use cargo_test_support::{compare::assert_ui, TestEnv};
 
 mod basic;
 mod features;
+mod features_activated_over_limit;
+mod features_deactivated_over_limit;
 mod git_dependency;
 mod help;
 mod not_found;
