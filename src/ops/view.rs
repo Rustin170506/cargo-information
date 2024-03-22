@@ -119,7 +119,7 @@ pub(super) fn pretty_view(
         )?;
     }
 
-    pretty_features(summary.features(), stdout)?;
+    pretty_features(summary.features(), verbosity, stdout)?;
 
     pretty_deps(package, verbosity, stdout, config)?;
 
@@ -239,7 +239,11 @@ fn pretty_req(req: &cargo::util::OptVersionReq) -> String {
     }
 }
 
-fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult<()> {
+fn pretty_features(
+    features: &FeatureMap,
+    verbosity: Verbosity,
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
     let header = HEADER;
     let enabled = LITERAL;
     let disabled = NOP;
@@ -280,7 +284,11 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     const MAX_FEATURE_PRINTS: usize = 30;
     let total_activated = activated.len();
     let total_deactivated = remaining.len();
-    if total_activated <= MAX_FEATURE_PRINTS {
+    let show_all = match verbosity {
+        Verbosity::Quiet | Verbosity::Normal => false,
+        Verbosity::Verbose => true,
+    };
+    if total_activated <= MAX_FEATURE_PRINTS || show_all {
         for (current, current_activated) in activated {
             writeln!(
                 stdout,
@@ -299,7 +307,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         )?;
     }
 
-    if (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS {
+    if (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS || show_all {
         for (current, current_activated) in remaining {
             writeln!(
                 stdout,
