@@ -98,6 +98,49 @@ fn find_pkgid_in_ws(
     (package_id, is_member)
 }
 
+fn find_pkgid_in_summaries(
+    summaries: &[IndexSummary],
+    spec: &PackageIdSpec,
+    rustc_version: &semver::Version,
+    source_ids: &RegistrySourceIds,
+) -> CargoResult<PackageId> {
+    let summary = summaries
+        .iter()
+        .filter(|s| spec.matches(s.package_id()))
+        .max_by(|s1, s2| {
+            // Check the MSRV compatibility.
+            let s1_matches = s1
+                .as_summary()
+                .rust_version()
+                .map(|v| v.to_caret_req().matches(rustc_version))
+                .unwrap_or_else(|| false);
+            let s2_matches = s2
+                .as_summary()
+                .rust_version()
+                .map(|v| v.to_caret_req().matches(rustc_version))
+                .unwrap_or_else(|| false);
+            // MSRV compatible version is preferred.
+            match (s1_matches, s2_matches) {
+                (true, false) => std::cmp::Ordering::Greater,
+                (false, true) => std::cmp::Ordering::Less,
+                // If both summaries match the current Rust version or neither do, try to
+                // pick the latest version.
+                _ => s1.package_id().version().cmp(s2.package_id().version()),
+            }
+        });
+
+    match summary {
+        Some(summary) => Ok(summary.package_id()),
+        None => {
+            anyhow::bail!(
+                "could not find `{}` in registry `{}`",
+                spec,
+                source_ids.original.url()
+            )
+        }
+    }
+}
+
 // Query the package registry and pretty print the result.
 // If package_id is None, find the latest version.
 fn query_and_pretty_view(
@@ -112,43 +155,7 @@ fn query_and_pretty_view(
 ) -> CargoResult<()> {
     let package_id = match package_id {
         Some(id) => id,
-        None => {
-            let summary = summaries
-                .iter()
-                .filter(|s| spec.matches(s.package_id()))
-                .max_by(|s1, s2| {
-                    // Check the MSRV compatibility.
-                    let s1_matches = s1
-                        .as_summary()
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
-                    let s2_matches = s2
-                        .as_summary()
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
-                    // MSRV compatible version is preferred.
-                    match (s1_matches, s2_matches) {
-                        (true, false) => std::cmp::Ordering::Greater,
-                        (false, true) => std::cmp::Ordering::Less,
-                        // If both summaries match the current Rust version or neither do, try to
-                        // pick the latest version.
-                        _ => s1.package_id().version().cmp(s2.package_id().version()),
-                    }
-                });
-            // If can not find the latest version, return an error.
-            match summary {
-                Some(summary) => summary.package_id(),
-                None => {
-                    anyhow::bail!(
-                        "could not find `{}` in registry `{}`",
-                        spec,
-                        source_ids.original.url()
-                    )
-                }
-            }
-        }
+        None => find_pkgid_in_summaries(summaries, spec, rustc_version, &source_ids)?,
     };
 
     let package = registry.get(&[package_id])?;
