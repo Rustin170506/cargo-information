@@ -257,40 +257,37 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     writeln!(stdout, "{header}features:{header:#}")?;
 
     let default_feature = cargo::util::interning::InternedString::new("default");
-    let mut root_activated = Vec::new();
+    let mut activated_queue = Vec::new();
     if features.iter().any(|(name, _)| *name == default_feature) {
-        root_activated.push(default_feature);
+        activated_queue.push(default_feature);
     }
 
+    let mut activated = vec![];
     let mut remaining = features.clone();
-    for root in root_activated {
-        let mut activated = vec![root];
-        while let Some(current) = activated.pop() {
-            let Some(current_activated) = remaining.remove(&current) else {
-                continue;
-            };
-            writeln!(
-                stdout,
-                "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
-                features = current_activated
-                    .iter()
-                    .map(|s| format!("{enabled}{s}{enabled:#}"))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )?;
-            activated.extend(current_activated.iter().rev().filter_map(|f| match f {
-                cargo::core::FeatureValue::Feature(name) => Some(name),
-                cargo::core::FeatureValue::Dep { .. }
-                | cargo::core::FeatureValue::DepFeature { .. } => None,
-            }));
-        }
-    }
-
-    let mut activated = remaining.keys().rev().cloned().collect::<Vec<_>>();
-    while let Some(current) = activated.pop() {
+    while let Some(current) = activated_queue.pop() {
         let Some(current_activated) = remaining.remove(&current) else {
             continue;
         };
+        activated_queue.extend(current_activated.iter().rev().filter_map(|f| match f {
+            cargo::core::FeatureValue::Feature(name) => Some(name),
+            cargo::core::FeatureValue::Dep { .. }
+            | cargo::core::FeatureValue::DepFeature { .. } => None,
+        }));
+        activated.push((current, current_activated));
+    }
+
+    for (current, current_activated) in activated {
+        writeln!(
+            stdout,
+            "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
+            features = current_activated
+                .iter()
+                .map(|s| format!("{enabled}{s}{enabled:#}"))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )?;
+    }
+    for (current, current_activated) in remaining {
         writeln!(
             stdout,
             "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
@@ -300,11 +297,6 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
                 .collect::<Vec<String>>()
                 .join(", ")
         )?;
-        activated.extend(current_activated.iter().rev().filter_map(|f| match f {
-            cargo::core::FeatureValue::Feature(name) => Some(name),
-            cargo::core::FeatureValue::Dep { .. }
-            | cargo::core::FeatureValue::DepFeature { .. } => None,
-        }));
     }
 
     Ok(())
