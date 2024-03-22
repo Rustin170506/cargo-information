@@ -243,6 +243,7 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     let header = HEADER;
     let enabled = LITERAL;
     let disabled = NOP;
+    let summary = anstyle::Style::new() | anstyle::Effects::ITALIC;
 
     // If there are no features, return early.
     let margin = features
@@ -276,26 +277,44 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
         activated.push((current, current_activated));
     }
 
-    for (current, current_activated) in activated {
+    const MAX_FEATURE_PRINTS: usize = 30;
+    let total_activated = activated.len();
+    let total_deactivated = remaining.len();
+    if total_activated <= MAX_FEATURE_PRINTS {
+        for (current, current_activated) in activated {
+            writeln!(
+                stdout,
+                "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
+                features = current_activated
+                    .iter()
+                    .map(|s| format!("{enabled}{s}{enabled:#}"))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+        }
+    } else {
         writeln!(
             stdout,
-            "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
-            features = current_activated
-                .iter()
-                .map(|s| format!("{enabled}{s}{enabled:#}"))
-                .collect::<Vec<String>>()
-                .join(", ")
+            "  {summary}{total_activated} activated features{summary:#}",
         )?;
     }
-    for (current, current_activated) in remaining {
+
+    if (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS {
+        for (current, current_activated) in remaining {
+            writeln!(
+                stdout,
+                "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
+                features = current_activated
+                    .iter()
+                    .map(|s| format!("{disabled}{s}{disabled:#}"))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+        }
+    } else {
         writeln!(
             stdout,
-            "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
-            features = current_activated
-                .iter()
-                .map(|s| format!("{disabled}{s}{disabled:#}"))
-                .collect::<Vec<String>>()
-                .join(", ")
+            "  {summary}{total_deactivated} deactivated features{summary:#}",
         )?;
     }
 
