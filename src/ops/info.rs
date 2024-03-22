@@ -102,6 +102,17 @@ fn find_pkgid_in_ws(
         return (None, false);
     };
 
+    if let Some(package_id) = ws
+        .members()
+        .map(|p| p.package_id())
+        .flat_map(|p| resolve.deps(p))
+        .map(|(p, _)| p)
+        .filter(|&p| spec.matches(p))
+        .max_by_key(|&p| p.version())
+    {
+        return (Some(package_id), false);
+    }
+
     if let Some(package_id) = resolve
         .iter()
         .filter(|&p| spec.matches(p))
