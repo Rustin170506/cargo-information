@@ -90,18 +90,27 @@ fn find_pkgid_in_ws(
     ws: Option<&cargo::core::Workspace<'_>>,
     spec: &PackageIdSpec,
 ) -> (Option<PackageId>, bool) {
-    let (package_id, is_member) = ws
-        .as_ref()
-        .and_then(|ws| ops::resolve_ws(ws).map(|(_, resolve)| (ws, resolve)).ok())
-        .and_then(|(ws, resolve)| {
-            let package_id = resolve
-                .iter()
-                .filter(|&p| spec.matches(p))
-                .max_by_key(|&p| p.version());
-            package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
-        })
-        .unwrap_or((None, false));
-    (package_id, is_member)
+    let Some(ws) = ws else {
+        return (None, false);
+    };
+
+    if let Some(member) = ws.members().find(|p| spec.matches(p.package_id())) {
+        return (Some(member.package_id()), true);
+    }
+
+    let Ok((_, resolve)) = ops::resolve_ws(ws) else {
+        return (None, false);
+    };
+
+    if let Some(package_id) = resolve
+        .iter()
+        .filter(|&p| spec.matches(p))
+        .max_by_key(|&p| p.version())
+    {
+        return (Some(package_id), false);
+    }
+
+    (None, false)
 }
 
 fn find_pkgid_in_summaries(
