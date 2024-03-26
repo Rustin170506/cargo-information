@@ -8,6 +8,7 @@ use cargo::core::PackageIdSpecQuery;
 use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
+use cargo::sources::IndexSummary;
 use cargo::sources::{RegistrySource, SourceConfigMap};
 use cargo::util::auth::{auth_token, AuthorizationErrorReason};
 use cargo::util::cache_lock::CacheLockMode;
@@ -35,17 +36,7 @@ pub fn info(
     let ws = root_manifest
         .as_ref()
         .and_then(|root| Workspace::new(root, config).ok());
-    let (mut package_id, is_member) = ws
-        .as_ref()
-        .and_then(|ws| ops::resolve_ws(ws).map(|(_, resolve)| (ws, resolve)).ok())
-        .and_then(|(ws, resolve)| {
-            let package_id = resolve
-                .iter()
-                .filter(|&p| spec.matches(p))
-                .max_by_key(|&p| p.version());
-            package_id.map(|pid| (Some(pid), ws.members().any(|p| p.package_id() == pid)))
-        })
-        .unwrap_or((None, false));
+    let (mut package_id, is_member) = find_pkgid_in_ws(ws.as_ref(), spec);
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
     if !use_package_source_id {
@@ -71,83 +62,14 @@ pub fn info(
             )
         }
     };
-
     // Only suggest cargo tree command when the package is not a workspace member.
     // For workspace members, `cargo tree --package <SPEC> --invert` is useless. It only prints itself.
     let suggest_cargo_tree_command = package_id.is_some() && !is_member;
-    query_and_pretty_view(
-        spec,
-        package_id,
-        config,
-        registry,
-        source_ids,
-        &rustc_version,
-        suggest_cargo_tree_command,
-    )
-}
 
-// Query the package registry and pretty print the result.
-// If package_id is None, find the latest version.
-fn query_and_pretty_view(
-    spec: &PackageIdSpec,
-    package_id: Option<PackageId>,
-    config: &Config,
-    mut registry: PackageRegistry,
-    source_ids: RegistrySourceIds,
-    rustc_version: &semver::Version,
-    suggest_cargo_tree_command: bool,
-) -> CargoResult<()> {
-    // Query without version requirement to get all index summaries.
-    let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
-    let summaries = loop {
-        // Exact to avoid returning all for path/git
-        match registry.query_vec(&dep, QueryKind::Exact) {
-            std::task::Poll::Ready(res) => {
-                break res?;
-            }
-            std::task::Poll::Pending => registry.block_until_ready()?,
-        }
-    };
-
+    let summaries = query_summaries(spec, &mut registry, &source_ids)?;
     let package_id = match package_id {
         Some(id) => id,
-        None => {
-            let summary = summaries
-                .iter()
-                .filter(|s| spec.matches(s.package_id()))
-                .max_by(|s1, s2| {
-                    // Check the MSRV compatibility.
-                    let s1_matches = s1
-                        .as_summary()
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
-                    let s2_matches = s2
-                        .as_summary()
-                        .rust_version()
-                        .map(|v| v.to_caret_req().matches(rustc_version))
-                        .unwrap_or_else(|| false);
-                    // MSRV compatible version is preferred.
-                    match (s1_matches, s2_matches) {
-                        (true, false) => std::cmp::Ordering::Greater,
-                        (false, true) => std::cmp::Ordering::Less,
-                        // If both summaries match the current Rust version or neither do, try to
-                        // pick the latest version.
-                        _ => s1.package_id().version().cmp(s2.package_id().version()),
-                    }
-                });
-            // If can not find the latest version, return an error.
-            match summary {
-                Some(summary) => summary.package_id(),
-                None => {
-                    anyhow::bail!(
-                        "could not find `{}` in registry `{}`",
-                        spec,
-                        source_ids.original.url()
-                    )
-                }
-            }
-        }
+        None => find_pkgid_in_summaries(&summaries, spec, &rustc_version, &source_ids)?,
     };
 
     let package = registry.get(&[package_id])?;
@@ -162,6 +84,94 @@ fn query_and_pretty_view(
     )?;
 
     Ok(())
+}
+
+fn find_pkgid_in_ws(
+    ws: Option<&cargo::core::Workspace<'_>>,
+    spec: &PackageIdSpec,
+) -> (Option<PackageId>, bool) {
+    let Some(ws) = ws else {
+        return (None, false);
+    };
+
+    if let Some(member) = ws.members().find(|p| spec.matches(p.package_id())) {
+        return (Some(member.package_id()), true);
+    }
+
+    let Ok((_, resolve)) = ops::resolve_ws(ws) else {
+        return (None, false);
+    };
+
+    if let Some(package_id) = resolve
+        .iter()
+        .filter(|&p| spec.matches(p))
+        .max_by_key(|&p| p.version())
+    {
+        return (Some(package_id), false);
+    }
+
+    (None, false)
+}
+
+fn find_pkgid_in_summaries(
+    summaries: &[IndexSummary],
+    spec: &PackageIdSpec,
+    rustc_version: &semver::Version,
+    source_ids: &RegistrySourceIds,
+) -> CargoResult<PackageId> {
+    let summary = summaries
+        .iter()
+        .filter(|s| spec.matches(s.package_id()))
+        .max_by(|s1, s2| {
+            // Check the MSRV compatibility.
+            let s1_matches = s1
+                .as_summary()
+                .rust_version()
+                .map(|v| v.to_caret_req().matches(rustc_version))
+                .unwrap_or_else(|| false);
+            let s2_matches = s2
+                .as_summary()
+                .rust_version()
+                .map(|v| v.to_caret_req().matches(rustc_version))
+                .unwrap_or_else(|| false);
+            // MSRV compatible version is preferred.
+            match (s1_matches, s2_matches) {
+                (true, false) => std::cmp::Ordering::Greater,
+                (false, true) => std::cmp::Ordering::Less,
+                // If both summaries match the current Rust version or neither do, try to
+                // pick the latest version.
+                _ => s1.package_id().version().cmp(s2.package_id().version()),
+            }
+        });
+
+    match summary {
+        Some(summary) => Ok(summary.package_id()),
+        None => {
+            anyhow::bail!(
+                "could not find `{}` in registry `{}`",
+                spec,
+                source_ids.original.url()
+            )
+        }
+    }
+}
+
+fn query_summaries(
+    spec: &PackageIdSpec,
+    registry: &mut PackageRegistry,
+    source_ids: &RegistrySourceIds,
+) -> CargoResult<Vec<IndexSummary>> {
+    // Query without version requirement to get all index summaries.
+    let dep = Dependency::parse(spec.name(), None, source_ids.original)?;
+    loop {
+        // Exact to avoid returning all for path/git
+        match registry.query_vec(&dep, QueryKind::Exact) {
+            std::task::Poll::Ready(res) => {
+                break res;
+            }
+            std::task::Poll::Pending => registry.block_until_ready()?,
+        }
+    }
 }
 
 // Try to list the login and name of all owners of a crate.
