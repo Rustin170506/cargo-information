@@ -24,17 +24,17 @@ fn case() {
     let project_root = project.root();
     let transitive1_root = project_root.join("crates/transitive1");
     let transitive2_root = project_root.join("crates/transitive2");
-    let root_directory = &project_root;
+    let ws_directory = &project_root;
     let transitive1_directory = &transitive1_root;
     let transitive2_directory = &transitive2_root;
 
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(root_directory)
+        .current_dir(ws_directory)
         .assert()
-        .stdout_matches(file!["root.stdout.log"])
-        .stderr_matches(file!["root.stderr.log"]);
+        .stdout_matches(file!["ws.stdout.log"])
+        .stderr_matches(file!["ws.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")

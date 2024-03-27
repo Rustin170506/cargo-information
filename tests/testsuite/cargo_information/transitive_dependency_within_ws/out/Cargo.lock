@@ -3,15 +3,6 @@
 version = 3
 
 [[package]]
-name = "cargo-list-test-fixture"
-version = "0.0.0"
-dependencies = [
- "dep1",
- "dep2",
- "dep3",
-]
-
-[[package]]
 name = "dep1"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -61,6 +52,15 @@ name = "transitive1"
 version = "0.0.0"
 dependencies = [
  "dep1",
+]
+
+[[package]]
+name = "transitive123"
+version = "0.0.0"
+dependencies = [
+ "dep1",
+ "dep2",
+ "dep3",
 ]
 
 [[package]]
