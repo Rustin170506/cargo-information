@@ -1,0 +1,7 @@
+my-package
+version: 3.0.0 (latest 99.0.0)
+license: unknown
+rust-version: unknown
+documentation: https://docs.rs/my-package/3.0.0
+crates.io: https://crates.io/crates/my-package/3.0.0
+note: to see how you depend on my-package, run `cargo tree --invert --package my-package@3.0.0`

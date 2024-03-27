@@ -25,9 +25,13 @@ fn case() {
     let project_root = project.root();
     let transitive1_root = project_root.join("crates/transitive1");
     let transitive2_root = project_root.join("crates/transitive2");
+    let direct1_root = project_root.join("crates/direct1");
+    let direct2_root = project_root.join("crates/direct2");
     let ws_directory = &project_root;
     let transitive1_directory = &transitive1_root;
     let transitive2_directory = &transitive2_root;
+    let direct1_directory = &direct1_root;
+    let direct2_directory = &direct2_root;
 
     cargo_info()
         .arg("my-package")
@@ -50,6 +54,20 @@ fn case() {
         .assert()
         .stdout_matches(file!["transitive2.stdout.log"])
         .stderr_matches(file!["transitive2.stderr.log"]);
+    cargo_info()
+        .arg("my-package")
+        .arg("--registry=dummy-registry")
+        .current_dir(direct1_directory)
+        .assert()
+        .stdout_matches(file!["direct1.stdout.log"])
+        .stderr_matches(file!["direct1.stderr.log"]);
+    cargo_info()
+        .arg("my-package")
+        .arg("--registry=dummy-registry")
+        .current_dir(direct2_directory)
+        .assert()
+        .stdout_matches(file!["direct2.stdout.log"])
+        .stderr_matches(file!["direct2.stderr.log"]);
 
     assert_ui().subset_matches(current_dir!().join("out"), &project_root);
 }
