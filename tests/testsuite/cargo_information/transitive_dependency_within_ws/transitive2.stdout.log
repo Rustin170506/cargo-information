@@ -1,5 +1,5 @@
 my-package
-version: 3.0.0
+version: 3.0.0 (latest 99.0.0)
 license: unknown
 rust-version: unknown
 documentation: https://docs.rs/my-package/3.0.0

@@ -6,7 +6,8 @@ use super::{cargo_info, init_registry_without_token};
 #[cargo_test]
 fn case() {
     init_registry_without_token();
-    for ver in ["1.0.0", "2.0.0", "3.0.0"] {
+    // 99.0.0 is unused
+    for ver in ["1.0.0", "2.0.0", "3.0.0", "99.0.0"] {
         cargo_test_support::registry::Package::new("my-package", ver).publish();
     }
     // Dep1 depends on 3.0.0, Dep2 depends on 2.0.0, Dep3 depends on 1.0.0
