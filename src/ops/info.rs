@@ -1,11 +1,10 @@
 use std::collections::HashSet;
-use std::path::PathBuf;
 use std::task::Poll;
 
 use anyhow::{bail, Context as _};
 use cargo::core::registry::PackageRegistry;
 use cargo::core::PackageIdSpecQuery;
-use cargo::core::{Dependency, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
+use cargo::core::{Dependency, Package, PackageId, PackageIdSpec, Registry, SourceId, Workspace};
 use cargo::ops::RegistryOrIndex;
 use cargo::sources::source::{QueryKind, Source};
 use cargo::sources::IndexSummary;
@@ -36,6 +35,11 @@ pub fn info(
     let ws = nearest_manifest_path
         .as_ref()
         .and_then(|root| Workspace::new(root, config).ok());
+    let nearest_package = ws.as_ref().and_then(|ws| {
+        nearest_manifest_path
+            .as_ref()
+            .and_then(|path| ws.members().find(|p| p.manifest_path() == path))
+    });
     let (mut package_id, is_member) = find_pkgid_in_ws(ws.as_ref(), spec);
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
@@ -46,7 +50,7 @@ pub fn info(
     validate_locked_and_frozen_options(package_id, config)?;
 
     let msrv_from_nearest_manifest_path_or_ws =
-        try_get_msrv_from_nearest_manifest_or_ws(&nearest_manifest_path, ws.as_ref());
+        try_get_msrv_from_nearest_manifest_or_ws(nearest_package, ws.as_ref());
     // If the workspace does not have a specific Rust version,
     // or if the command is not called within the workspace, then fallback to the global Rust version.
     let rustc_version = match msrv_from_nearest_manifest_path_or_ws {
@@ -364,18 +368,11 @@ fn validate_locked_and_frozen_options(
 }
 
 fn try_get_msrv_from_nearest_manifest_or_ws(
-    nearest_manifest_path: &Option<PathBuf>,
+    nearest_package: Option<&Package>,
     ws: Option<&Workspace>,
 ) -> Option<semver::Version> {
     // Try to get the MSRV from the nearest manifest.
-    let rust_version = ws
-        .as_ref()
-        .and_then(|ws| {
-            nearest_manifest_path
-                .as_ref()
-                .and_then(|path| ws.members().find(|p| p.manifest_path() == path))
-        })
-        .and_then(|p| p.rust_version()?.to_version());
+    let rust_version = nearest_package.and_then(|p| p.rust_version()?.to_version());
     // If the nearest manifest does not have a specific Rust version, try to get it from the workspace.
     rust_version.or_else(|| ws.and_then(|ws| ws.rust_version()?.to_version()))
 }
