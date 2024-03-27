@@ -22,7 +22,7 @@ dependencies = [
 name = "crate2"
 version = "0.0.0"
 dependencies = [
- "dep3",
+ "dep2",
 ]
 
 [[package]]
