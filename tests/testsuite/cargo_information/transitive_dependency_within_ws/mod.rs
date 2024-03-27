@@ -22,11 +22,11 @@ fn case() {
 
     let project = Project::from_template(current_dir!().join("in"));
     let project_root = project.root();
-    let crate1_root = project_root.join("crates/crate1");
-    let crate2_root = project_root.join("crates/crate2");
+    let transitive1_root = project_root.join("crates/transitive1");
+    let transitive2_root = project_root.join("crates/transitive2");
     let root_directory = &project_root;
-    let crate1_directory = &crate1_root;
-    let crate2_directory = &crate2_root;
+    let transitive1_directory = &transitive1_root;
+    let transitive2_directory = &transitive2_root;
 
     cargo_info()
         .arg("my-package")
@@ -38,17 +38,17 @@ fn case() {
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(crate1_directory)
+        .current_dir(transitive1_directory)
         .assert()
-        .stdout_matches(file!["crate1.stdout.log"])
-        .stderr_matches(file!["crate1.stderr.log"]);
+        .stdout_matches(file!["transitive1.stdout.log"])
+        .stderr_matches(file!["transitive1.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(crate2_directory)
+        .current_dir(transitive2_directory)
         .assert()
-        .stdout_matches(file!["crate2.stdout.log"])
-        .stderr_matches(file!["crate2.stderr.log"]);
+        .stdout_matches(file!["transitive2.stdout.log"])
+        .stderr_matches(file!["transitive2.stderr.log"]);
 
     assert_ui().subset_matches(current_dir!().join("out"), &project_root);
 }
