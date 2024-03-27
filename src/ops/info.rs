@@ -40,7 +40,7 @@ pub fn info(
             .as_ref()
             .and_then(|path| ws.members().find(|p| p.manifest_path() == path))
     });
-    let (mut package_id, is_member) = find_pkgid_in_ws(ws.as_ref(), spec);
+    let (mut package_id, is_member) = find_pkgid_in_ws(nearest_package, ws.as_ref(), spec);
     let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
     if !use_package_source_id {
@@ -91,6 +91,7 @@ pub fn info(
 }
 
 fn find_pkgid_in_ws(
+    nearest_package: Option<&Package>,
     ws: Option<&cargo::core::Workspace<'_>>,
     spec: &PackageIdSpec,
 ) -> (Option<PackageId>, bool) {
@@ -105,6 +106,17 @@ fn find_pkgid_in_ws(
     let Ok((_, resolve)) = ops::resolve_ws(ws) else {
         return (None, false);
     };
+
+    if let Some(package_id) = nearest_package
+        .map(|p| p.package_id())
+        .into_iter()
+        .flat_map(|p| resolve.deps(p))
+        .map(|(p, _)| p)
+        .filter(|&p| spec.matches(p))
+        .max_by_key(|&p| p.version())
+    {
+        return (Some(package_id), false);
+    }
 
     if let Some(package_id) = ws
         .members()

@@ -1,7 +1,7 @@
 my-package
-version: 2.0.0 (latest 99.0.0)
+version: 1.0.0 (latest 99.0.0)
 license: unknown
 rust-version: unknown
-documentation: https://docs.rs/my-package/2.0.0
-crates.io: https://crates.io/crates/my-package/2.0.0
-note: to see how you depend on my-package, run `cargo tree --invert --package my-package@2.0.0`
+documentation: https://docs.rs/my-package/1.0.0
+crates.io: https://crates.io/crates/my-package/1.0.0
+note: to see how you depend on my-package, run `cargo tree --invert --package my-package@1.0.0`
