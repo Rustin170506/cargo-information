@@ -119,7 +119,7 @@ pub(super) fn pretty_view(
         )?;
     }
 
-    pretty_features(summary.features(), stdout)?;
+    pretty_features(summary.features(), verbosity, stdout)?;
 
     pretty_deps(package, verbosity, stdout, config)?;
 
@@ -239,10 +239,15 @@ fn pretty_req(req: &cargo::util::OptVersionReq) -> String {
     }
 }
 
-fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult<()> {
+fn pretty_features(
+    features: &FeatureMap,
+    verbosity: Verbosity,
+    stdout: &mut dyn Write,
+) -> CargoResult<()> {
     let header = HEADER;
     let enabled = LITERAL;
     let disabled = NOP;
+    let summary = anstyle::Style::new() | anstyle::Effects::ITALIC;
 
     // If there are no features, return early.
     let margin = features
@@ -257,18 +262,43 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
     writeln!(stdout, "{header}features:{header:#}")?;
 
     let default_feature = cargo::util::interning::InternedString::new("default");
-    let mut root_activated = Vec::new();
+    let mut activated_queue = Vec::new();
     if features.iter().any(|(name, _)| *name == default_feature) {
-        root_activated.push(default_feature);
+        activated_queue.push(default_feature);
     }
 
+    let mut activated = vec![];
     let mut remaining = features.clone();
-    for root in root_activated {
-        let mut activated = vec![root];
-        while let Some(current) = activated.pop() {
-            let Some(current_activated) = remaining.remove(&current) else {
-                continue;
-            };
+    while let Some(current) = activated_queue.pop() {
+        let Some(current_activated) = remaining.remove(&current) else {
+            continue;
+        };
+        activated_queue.extend(current_activated.iter().rev().filter_map(|f| match f {
+            cargo::core::FeatureValue::Feature(name) => Some(name),
+            cargo::core::FeatureValue::Dep { .. }
+            | cargo::core::FeatureValue::DepFeature { .. } => None,
+        }));
+        activated.push((current, current_activated));
+    }
+
+    const MAX_FEATURE_PRINTS: usize = 30;
+    let total_activated = activated.len();
+    let total_deactivated = remaining.len();
+    let show_all = match verbosity {
+        Verbosity::Quiet | Verbosity::Normal => false,
+        Verbosity::Verbose => true,
+    };
+    if total_activated <= MAX_FEATURE_PRINTS || show_all {
+        activated.sort_by_key(|(name, _)| {
+            // sort `default` first
+            if name == "default" {
+                None
+            } else {
+                Some(name.to_owned())
+            }
+        });
+
+        for (current, current_activated) in activated {
             writeln!(
                 stdout,
                 "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
@@ -278,33 +308,31 @@ fn pretty_features(features: &FeatureMap, stdout: &mut dyn Write) -> CargoResult
                     .collect::<Vec<String>>()
                     .join(", ")
             )?;
-            activated.extend(current_activated.iter().rev().filter_map(|f| match f {
-                cargo::core::FeatureValue::Feature(name) => Some(name),
-                cargo::core::FeatureValue::Dep { .. }
-                | cargo::core::FeatureValue::DepFeature { .. } => None,
-            }));
         }
-    }
-
-    let mut activated = remaining.keys().rev().cloned().collect::<Vec<_>>();
-    while let Some(current) = activated.pop() {
-        let Some(current_activated) = remaining.remove(&current) else {
-            continue;
-        };
+    } else {
         writeln!(
             stdout,
-            "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
-            features = current_activated
-                .iter()
-                .map(|s| format!("{disabled}{s}{disabled:#}"))
-                .collect::<Vec<String>>()
-                .join(", ")
+            "  {summary}{total_activated} activated features{summary:#}",
         )?;
-        activated.extend(current_activated.iter().rev().filter_map(|f| match f {
-            cargo::core::FeatureValue::Feature(name) => Some(name),
-            cargo::core::FeatureValue::Dep { .. }
-            | cargo::core::FeatureValue::DepFeature { .. } => None,
-        }));
+    }
+
+    if (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS || show_all {
+        for (current, current_activated) in remaining {
+            writeln!(
+                stdout,
+                "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
+                features = current_activated
+                    .iter()
+                    .map(|s| format!("{disabled}{s}{disabled:#}"))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )?;
+        }
+    } else {
+        writeln!(
+            stdout,
+            "  {summary}{total_deactivated} deactivated features{summary:#}",
+        )?;
     }
 
     Ok(())

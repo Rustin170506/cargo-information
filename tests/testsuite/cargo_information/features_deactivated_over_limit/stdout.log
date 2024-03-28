@@ -1,0 +1,27 @@
+your-face
+version: 99999.0.0+my-package (from registry `dummy-registry`)
+license: unknown
+rust-version: unknown
+features:
+  default = [eyes000, eyes001, eyes002, eyes003, eyes004, eyes005, eyes006, eyes007, eyes008, eyes009, eyes010, eyes011, eyes012, eyes013, eyes014, eyes015, eyes016, eyes017, eyes018, eyes019]
+  eyes000 = []
+  eyes001 = []
+  eyes002 = []
+  eyes003 = []
+  eyes004 = []
+  eyes005 = []
+  eyes006 = []
+  eyes007 = []
+  eyes008 = []
+  eyes009 = []
+  eyes010 = []
+  eyes011 = []
+  eyes012 = []
+  eyes013 = []
+  eyes014 = []
+  eyes015 = []
+  eyes016 = []
+  eyes017 = []
+  eyes018 = []
+  eyes019 = []
+  180 deactivated features
