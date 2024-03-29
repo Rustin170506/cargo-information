@@ -1,1 +1,1 @@
-error: package name cannot be empty
+error: invalid package id specification `https://crates.io`: package name cannot be empty
