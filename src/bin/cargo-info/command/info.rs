@@ -101,7 +101,13 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
         .get_one::<String>("package")
         .map(String::as_str)
         .unwrap();
-    let spec = PackageIdSpec::parse(package)?;
+    let spec = PackageIdSpec::parse(package).map_err(|e| {
+        anyhow::format_err!(
+            "invalid package id specification `{}`: {}",
+            package,
+            e.to_string()
+        )
+    })?;
 
     let reg_or_index = args.registry_or_index(config)?;
     ops::info(&spec, config, reg_or_index)?;
