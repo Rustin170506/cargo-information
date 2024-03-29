@@ -346,7 +346,7 @@ dependencies = [
  "cargo-util 0.2.9",
  "clap",
  "color-print",
- "crates-io 0.39.2",
+ "crates-io 0.40.0",
  "pathdiff",
  "semver",
  "snapbox",
@@ -562,6 +562,20 @@ name = "crates-io"
 version = "0.39.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6622f902c3c338eced1f000091f034846ae36aadaf35d0acd1ab0469a2d8ef1f"
+dependencies = [
+ "curl",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "url",
+]
+
+[[package]]
+name = "crates-io"
+version = "0.40.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "19958b4dfc8889cf78606e5e2fe64e7e0170a9ab853157192608f3a3253c8ef8"
 dependencies = [
  "curl",
  "percent-encoding",
