@@ -6,7 +6,8 @@ use super::{cargo_info, init_registry_without_token};
 #[cargo_test]
 fn case() {
     init_registry_without_token();
-    for ver in ["1.0.0", "2.0.0", "3.0.0"] {
+    // 99.0.0 is unused
+    for ver in ["1.0.0", "2.0.0", "3.0.0", "99.0.0"] {
         cargo_test_support::registry::Package::new("my-package", ver).publish();
     }
     // Dep1 depends on 3.0.0, Dep2 depends on 2.0.0, Dep3 depends on 1.0.0
@@ -22,33 +23,51 @@ fn case() {
 
     let project = Project::from_template(current_dir!().join("in"));
     let project_root = project.root();
-    let crate1_root = project_root.join("crates/crate1");
-    let crate2_root = project_root.join("crates/crate2");
-    let root_directory = &project_root;
-    let crate1_directory = &crate1_root;
-    let crate2_directory = &crate2_root;
+    let transitive1_root = project_root.join("crates/transitive1");
+    let transitive2_root = project_root.join("crates/transitive2");
+    let direct1_root = project_root.join("crates/direct1");
+    let direct2_root = project_root.join("crates/direct2");
+    let ws_directory = &project_root;
+    let transitive1_directory = &transitive1_root;
+    let transitive2_directory = &transitive2_root;
+    let direct1_directory = &direct1_root;
+    let direct2_directory = &direct2_root;
 
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(root_directory)
+        .current_dir(ws_directory)
         .assert()
-        .stdout_matches(file!["root.stdout.log"])
-        .stderr_matches(file!["root.stderr.log"]);
+        .stdout_matches(file!["ws.stdout.log"])
+        .stderr_matches(file!["ws.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(crate1_directory)
+        .current_dir(transitive1_directory)
         .assert()
-        .stdout_matches(file!["crate1.stdout.log"])
-        .stderr_matches(file!["crate1.stderr.log"]);
+        .stdout_matches(file!["transitive1.stdout.log"])
+        .stderr_matches(file!["transitive1.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
-        .current_dir(crate2_directory)
+        .current_dir(transitive2_directory)
         .assert()
-        .stdout_matches(file!["crate2.stdout.log"])
-        .stderr_matches(file!["crate2.stderr.log"]);
+        .stdout_matches(file!["transitive2.stdout.log"])
+        .stderr_matches(file!["transitive2.stderr.log"]);
+    cargo_info()
+        .arg("my-package")
+        .arg("--registry=dummy-registry")
+        .current_dir(direct1_directory)
+        .assert()
+        .stdout_matches(file!["direct1.stdout.log"])
+        .stderr_matches(file!["direct1.stderr.log"]);
+    cargo_info()
+        .arg("my-package")
+        .arg("--registry=dummy-registry")
+        .current_dir(direct2_directory)
+        .assert()
+        .stdout_matches(file!["direct2.stdout.log"])
+        .stderr_matches(file!["direct2.stderr.log"]);
 
     assert_ui().subset_matches(current_dir!().join("out"), &project_root);
 }

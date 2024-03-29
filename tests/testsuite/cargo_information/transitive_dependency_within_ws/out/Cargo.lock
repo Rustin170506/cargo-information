@@ -3,29 +3,6 @@
 version = 3
 
 [[package]]
-name = "cargo-list-test-fixture"
-version = "0.0.0"
-dependencies = [
- "dep1",
- "dep2",
- "dep3",
-]
-
-[[package]]
-name = "crate1"
-version = "0.0.0"
-dependencies = [
- "dep1",
-]
-
-[[package]]
-name = "crate2"
-version = "0.0.0"
-dependencies = [
- "dep3",
-]
-
-[[package]]
 name = "dep1"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -53,6 +30,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "direct1"
+version = "0.0.0"
+dependencies = [
+ "my-package 1.0.0",
+]
+
+[[package]]
+name = "direct2"
+version = "0.0.0"
+dependencies = [
+ "my-package 2.0.0",
+]
+
+[[package]]
 name = "my-package"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -69,3 +60,26 @@ name = "my-package"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3cd3891af6aae46429a27cdcceff47ac91672ad958b53812fe61983c6d70a00e"
+
+[[package]]
+name = "transitive1"
+version = "0.0.0"
+dependencies = [
+ "dep1",
+]
+
+[[package]]
+name = "transitive123"
+version = "0.0.0"
+dependencies = [
+ "dep1",
+ "dep2",
+ "dep3",
+]
+
+[[package]]
+name = "transitive2"
+version = "0.0.0"
+dependencies = [
+ "dep2",
+]

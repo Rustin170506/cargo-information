@@ -1,11 +1,2 @@
 [workspace]
 members = ["crates/*"]
-
-[package]
-name = "cargo-list-test-fixture"
-version = "0.0.0"
-
-[dependencies]
-dep1 = "1"
-dep2 = "1"
-dep3 = "1"
