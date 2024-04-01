@@ -48,9 +48,9 @@
 </tspan>
     <tspan x="10px" y="262px"><tspan>  bar@0.2.0</tspan>
 </tspan>
-    <tspan x="10px" y="280px"><tspan>  </tspan><tspan class="dimmed">baz@0.3.0</tspan>
+    <tspan x="10px" y="280px"><tspan>  foo@0.1.0</tspan>
 </tspan>
-    <tspan x="10px" y="298px"><tspan>  foo@0.1.0</tspan>
+    <tspan x="10px" y="298px"><tspan>  </tspan><tspan class="dimmed">baz@0.3.0</tspan>
 </tspan>
     <tspan x="10px" y="316px">
 </tspan>

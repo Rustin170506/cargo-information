@@ -189,10 +189,11 @@ fn pretty_deps(
 }
 
 fn print_deps(
-    dependencies: Vec<&Dependency>,
+    mut dependencies: Vec<&Dependency>,
     stdout: &mut dyn Write,
     config: &Config,
 ) -> Result<(), anyhow::Error> {
+    dependencies.sort_by_key(|d| (d.is_optional(), d.package_name()));
     for dependency in dependencies {
         let style = if dependency.is_optional() {
             anstyle::Style::new() | anstyle::Effects::DIMMED
