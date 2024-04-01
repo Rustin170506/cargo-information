@@ -447,7 +447,7 @@ fn resolve_features(
         })
         .collect::<HashMap<_, _>>();
 
-    let mut activated_queue = explicit.iter().cloned().collect::<Vec<_>>();
+    let mut activated_queue = explicit.to_vec();
 
     while let Some(current) = activated_queue.pop() {
         let Some(current_activated) = features.get(&current) else {
@@ -464,12 +464,12 @@ fn resolve_features(
             };
             if status.is_disabled() {
                 *status = FeatureStatus::Enabled;
-                activated_queue.push(activated.clone());
+                activated_queue.push(*activated);
             }
         }
     }
 
     let mut resolved: Vec<_> = resolved.into_iter().collect();
-    resolved.sort_by_key(|(name, status)| (*status, name.clone()));
+    resolved.sort_by_key(|(name, status)| (*status, *name));
     resolved
 }
