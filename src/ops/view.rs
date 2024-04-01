@@ -5,6 +5,7 @@ use cargo::{
         dependency::DepKind, shell::Verbosity, Dependency, FeatureMap, Package, PackageId, SourceId,
     },
     sources::IndexSummary,
+    util::interning::InternedString,
     CargoResult, Config,
 };
 
@@ -261,7 +262,7 @@ fn pretty_features(
 
     writeln!(stdout, "{header}features:{header:#}")?;
 
-    let default_feature = cargo::util::interning::InternedString::new("default");
+    let default_feature = InternedString::new("default");
     let mut activated_queue = Vec::new();
     if features.iter().any(|(name, _)| *name == default_feature) {
         activated_queue.push(default_feature);
