@@ -123,9 +123,21 @@ pub(super) fn pretty_view(
 
     let activated = &[InternedString::new("default")];
     let resolved_features = resolve_features(activated, summary.features());
-    pretty_features(resolved_features, summary.features(), verbosity, stdout)?;
+    pretty_features(
+        resolved_features.clone(),
+        summary.features(),
+        verbosity,
+        stdout,
+    )?;
 
-    pretty_deps(package, verbosity, stdout, config)?;
+    pretty_deps(
+        package,
+        &resolved_features,
+        summary.features(),
+        verbosity,
+        stdout,
+        config,
+    )?;
 
     if let Some(owners) = owners {
         pretty_owners(owners, stdout)?;
@@ -152,6 +164,8 @@ fn pretty_source(source: SourceId, config: &Config) -> String {
 
 fn pretty_deps(
     package: &Package,
+    resolved_features: &[(InternedString, FeatureStatus)],
+    features: &FeatureMap,
     verbosity: Verbosity,
     stdout: &mut dyn Write,
     config: &Config,
@@ -172,7 +186,7 @@ fn pretty_deps(
         .collect::<Vec<_>>();
     if !dependencies.is_empty() {
         writeln!(stdout, "{header}dependencies:{header:#}")?;
-        print_deps(dependencies, stdout, config)?;
+        print_deps(dependencies, resolved_features, features, stdout, config)?;
     }
 
     let build_dependencies = package
@@ -182,24 +196,58 @@ fn pretty_deps(
         .collect::<Vec<_>>();
     if !build_dependencies.is_empty() {
         writeln!(stdout, "{header}build-dependencies:{header:#}")?;
-        print_deps(build_dependencies, stdout, config)?;
+        print_deps(
+            build_dependencies,
+            resolved_features,
+            features,
+            stdout,
+            config,
+        )?;
     }
 
     Ok(())
 }
 
 fn print_deps(
-    mut dependencies: Vec<&Dependency>,
+    dependencies: Vec<&Dependency>,
+    resolved_features: &[(InternedString, FeatureStatus)],
+    features: &FeatureMap,
     stdout: &mut dyn Write,
     config: &Config,
 ) -> Result<(), anyhow::Error> {
-    dependencies.sort_by_key(|d| (d.is_optional(), d.package_name()));
-    for dependency in dependencies {
-        let style = if dependency.is_optional() {
-            anstyle::Style::new() | anstyle::Effects::DIMMED
-        } else {
-            Default::default()
-        };
+    let enabled_by_user = HEADER;
+    let enabled = NOP;
+    let disabled = anstyle::Style::new() | anstyle::Effects::DIMMED;
+
+    let mut dependencies = dependencies
+        .into_iter()
+        .map(|dependency| {
+            let status = if !dependency.is_optional() {
+                FeatureStatus::EnabledByUser
+            } else if resolved_features
+                .iter()
+                .filter(|(_, s)| !s.is_disabled())
+                .filter_map(|(n, _)| features.get(n))
+                .flatten()
+                .filter_map(|f| match f {
+                    cargo::core::FeatureValue::Feature(_) => None,
+                    cargo::core::FeatureValue::Dep { dep_name } => Some(dep_name),
+                    cargo::core::FeatureValue::DepFeature { dep_name, weak, .. } if *weak => {
+                        Some(dep_name)
+                    }
+                    cargo::core::FeatureValue::DepFeature { .. } => None,
+                })
+                .any(|dep_name| *dep_name == dependency.name_in_toml())
+            {
+                FeatureStatus::Enabled
+            } else {
+                FeatureStatus::Disabled
+            };
+            (dependency, status)
+        })
+        .collect::<Vec<_>>();
+    dependencies.sort_by_key(|(d, s)| (*s, d.package_name()));
+    for (dependency, status) in dependencies {
         // 1. Only print the version requirement if it is a registry dependency.
         // 2. Only print the source if it is not a registry dependency.
         // For example: `bar (./crates/bar)` or `bar@=1.2.3`.
@@ -215,9 +263,18 @@ fn print_deps(
             )
         };
 
+        if status == FeatureStatus::EnabledByUser {
+            write!(stdout, " {enabled_by_user}+{enabled_by_user:#}")?;
+        } else {
+            write!(stdout, "  ")?;
+        }
+        let style = match status {
+            FeatureStatus::EnabledByUser | FeatureStatus::Enabled => enabled,
+            FeatureStatus::Disabled => disabled,
+        };
         writeln!(
             stdout,
-            "  {style}{}{}{}{style:#}",
+            "{style}{}{}{}{style:#}",
             dependency.package_name(),
             req,
             source
