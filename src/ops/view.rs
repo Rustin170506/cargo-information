@@ -250,8 +250,9 @@ fn pretty_features(
     stdout: &mut dyn Write,
 ) -> CargoResult<()> {
     let header = HEADER;
-    let enabled = LITERAL;
-    let disabled = NOP;
+    let enabled_by_user = HEADER;
+    let enabled = NOP;
+    let disabled = anstyle::Style::new() | anstyle::Effects::DIMMED;
     let summary = anstyle::Style::new() | anstyle::Effects::ITALIC;
 
     // If there are no features, return early.
@@ -279,44 +280,44 @@ fn pretty_features(
         Verbosity::Quiet | Verbosity::Normal => false,
         Verbosity::Verbose => true,
     };
-    if total_activated <= MAX_FEATURE_PRINTS || show_all {
-        for (current, current_activated) in resolved_features
-            .iter()
-            .filter_map(|(n, s)| (!s.is_disabled()).then(|| (n, features.get(n).unwrap())))
-        {
-            writeln!(
-                stdout,
-                "  {enabled}{current: <margin$}{enabled:#} = [{features}]",
-                features = current_activated
-                    .iter()
-                    .map(|s| format!("{enabled}{s}{enabled:#}"))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )?;
+    let show_activated = total_activated <= MAX_FEATURE_PRINTS || show_all;
+    let show_deactivated = (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS || show_all;
+    for (current, status, current_activated) in resolved_features
+        .iter()
+        .map(|(n, s)| (n, s, features.get(n).unwrap()))
+    {
+        if !status.is_disabled() && !show_activated {
+            continue;
         }
-    } else {
+        if status.is_disabled() && !show_deactivated {
+            continue;
+        }
+        if *status == FeatureStatus::EnabledByUser {
+            write!(stdout, " {enabled_by_user}+{enabled_by_user:#}")?;
+        } else {
+            write!(stdout, "  ")?;
+        }
+        let style = match status {
+            FeatureStatus::EnabledByUser | FeatureStatus::Enabled => enabled,
+            FeatureStatus::Disabled => disabled,
+        };
+        writeln!(
+            stdout,
+            "{style}{current: <margin$}{style:#} = [{features}]",
+            features = current_activated
+                .iter()
+                .map(|s| format!("{style}{s}{style:#}"))
+                .collect::<Vec<String>>()
+                .join(", ")
+        )?;
+    }
+    if !show_activated {
         writeln!(
             stdout,
             "  {summary}{total_activated} activated features{summary:#}",
         )?;
     }
-
-    if (total_activated + total_deactivated) <= MAX_FEATURE_PRINTS || show_all {
-        for (current, current_activated) in resolved_features
-            .iter()
-            .filter_map(|(n, s)| s.is_disabled().then(|| (n, features.get(n).unwrap())))
-        {
-            writeln!(
-                stdout,
-                "  {disabled}{current: <margin$}{disabled:#} = [{features}]",
-                features = current_activated
-                    .iter()
-                    .map(|s| format!("{disabled}{s}{disabled:#}"))
-                    .collect::<Vec<String>>()
-                    .join(", ")
-            )?;
-        }
-    } else {
+    if !show_deactivated {
         writeln!(
             stdout,
             "  {summary}{total_deactivated} deactivated features{summary:#}",

@@ -36,13 +36,13 @@
 </tspan>
     <tspan x="10px" y="154px"><tspan class="fg-green bold">features:</tspan>
 </tspan>
-    <tspan x="10px" y="172px"><tspan>  </tspan><tspan class="fg-cyan bold">default </tspan><tspan> = [</tspan><tspan class="fg-cyan bold">feature1</tspan><tspan>]</tspan>
+    <tspan x="10px" y="172px"><tspan> </tspan><tspan class="fg-green bold">+</tspan><tspan>default  = [feature1]</tspan>
 </tspan>
-    <tspan x="10px" y="190px"><tspan>  </tspan><tspan class="fg-cyan bold">feature1</tspan><tspan> = []</tspan>
+    <tspan x="10px" y="190px"><tspan>  feature1 = []</tspan>
 </tspan>
-    <tspan x="10px" y="208px"><tspan>  baz      = [dep:baz]</tspan>
+    <tspan x="10px" y="208px"><tspan>  </tspan><tspan class="dimmed">baz     </tspan><tspan> = [</tspan><tspan class="dimmed">dep:baz</tspan><tspan>]</tspan>
 </tspan>
-    <tspan x="10px" y="226px"><tspan>  feature2 = []</tspan>
+    <tspan x="10px" y="226px"><tspan>  </tspan><tspan class="dimmed">feature2</tspan><tspan> = []</tspan>
 </tspan>
     <tspan x="10px" y="244px"><tspan class="fg-green bold">dependencies:</tspan>
 </tspan>
