@@ -3,6 +3,6 @@ version: 0.1.1 (from registry `dummy-registry`)
 license: unknown
 rust-version: unknown
 features:
-  default  = [feature1, feature2]
+ +default  = [feature1, feature2]
   feature1 = []
   feature2 = []

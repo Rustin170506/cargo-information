@@ -3,4 +3,4 @@ version: 0.1.0 (from ./)
 license: unknown
 rust-version: unknown
 dependencies:
-  baz ([ROOTURL]/baz)
+ +baz ([ROOTURL]/baz)
