@@ -6,8 +6,6 @@
 
 ## [0.6.0] - 2024-04-17
 
-## [0.5.0] - 2024-04-17
-
 ### Added
 
 - Display the crates.io link for packages.
@@ -34,6 +32,10 @@
 - Enhanced user experience by limiting the number of features displayed in non-verbose mode to prevent information
   overload.
 - Prefer direct dependencies over transitive dependencies.
+
+## [0.5.0] - 2024-04-17
+
+Accidentally skipped. There is no v0.5.0. See: https://github.com/crate-ci/cargo-release/issues/778
 
 ## [0.4.2] - 2024-02-20
 
