@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.5.0] - 2024-04-17
+
 ### Added
 
 - Display the crates.io link for packages.
