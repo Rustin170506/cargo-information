@@ -45,6 +45,15 @@ cargo install cargo-information --features vendored-openssl
 paru -S cargo-information
 ```
 
+### NixOS
+
+`cargo-info` is [available from nixpkgs](https://search.nixos.org/packages?channel=unstable&show=cargo-information).
+For example, to add `cargo-info` to your shell with flakes enabled:
+
+```bash
+nix shell nixpkgs#cargo-information
+```
+
 ## Usage
 
 After installation, you can use the `cargo info` command followed by the package name to get information about a package:
