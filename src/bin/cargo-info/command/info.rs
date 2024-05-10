@@ -68,7 +68,7 @@ fn info_subcommand() -> Command {
         ))
 }
 
-pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
+pub fn exec(ctx: &mut GlobalContext, args: &ArgMatches) -> CliResult {
     let verbose = args.verbose();
     let quiet = args.flag("quiet");
     let color = args.get_one::<String>("color").cloned();
@@ -85,7 +85,7 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
         .unwrap_or_default()
         .cloned()
         .collect();
-    config.configure(
+    ctx.configure(
         verbose,
         quiet,
         color.as_deref(),
@@ -109,8 +109,8 @@ pub fn exec(config: &mut Config, args: &ArgMatches) -> CliResult {
         )
     })?;
 
-    let reg_or_index = args.registry_or_index(config)?;
-    ops::info(&spec, config, reg_or_index)?;
+    let reg_or_index = args.registry_or_index(ctx)?;
+    ops::info(&spec, ctx, reg_or_index)?;
     Ok(())
 }
 
