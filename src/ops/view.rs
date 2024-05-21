@@ -18,7 +18,7 @@ pub(super) fn pretty_view(
     summaries: &[IndexSummary],
     owners: &Option<Vec<String>>,
     suggest_cargo_tree_command: bool,
-    ctx: &GlobalContext,
+    gctx: &GlobalContext,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
@@ -28,7 +28,7 @@ pub(super) fn pretty_view(
     let warn = WARN;
     let note = NOTE;
 
-    let mut shell = ctx.shell();
+    let mut shell = gctx.shell();
     let verbosity = shell.verbosity();
     let stdout = shell.out();
     write!(stdout, "{header}{}{header:#}", package_id.name())?;
@@ -56,7 +56,7 @@ pub(super) fn pretty_view(
                 stdout,
                 " {warn}(latest {} {warn:#}{note}from {}{note:#}{warn}){warn:#}",
                 latest.as_summary().version(),
-                pretty_source(summary.source_id(), ctx)
+                pretty_source(summary.source_id(), gctx)
             )?;
         }
         (Some(latest), true) if latest.as_summary().version() != package_id.version() => {
@@ -70,7 +70,7 @@ pub(super) fn pretty_view(
             write!(
                 stdout,
                 " {note}(from {}){note:#}",
-                pretty_source(summary.source_id(), ctx)
+                pretty_source(summary.source_id(), gctx)
             )?;
         }
         (_, true) => {}
@@ -136,7 +136,7 @@ pub(super) fn pretty_view(
         summary.features(),
         verbosity,
         stdout,
-        ctx,
+        gctx,
     )?;
 
     if let Some(owners) = owners {
@@ -168,7 +168,7 @@ fn pretty_deps(
     features: &FeatureMap,
     verbosity: Verbosity,
     stdout: &mut dyn Write,
-    ctx: &GlobalContext,
+    gctx: &GlobalContext,
 ) -> CargoResult<()> {
     match verbosity {
         Verbosity::Quiet | Verbosity::Normal => {
@@ -186,7 +186,7 @@ fn pretty_deps(
         .collect::<Vec<_>>();
     if !dependencies.is_empty() {
         writeln!(stdout, "{header}dependencies:{header:#}")?;
-        print_deps(dependencies, resolved_features, features, stdout, ctx)?;
+        print_deps(dependencies, resolved_features, features, stdout, gctx)?;
     }
 
     let build_dependencies = package
@@ -196,7 +196,13 @@ fn pretty_deps(
         .collect::<Vec<_>>();
     if !build_dependencies.is_empty() {
         writeln!(stdout, "{header}build-dependencies:{header:#}")?;
-        print_deps(build_dependencies, resolved_features, features, stdout, ctx)?;
+        print_deps(
+            build_dependencies,
+            resolved_features,
+            features,
+            stdout,
+            gctx,
+        )?;
     }
 
     Ok(())
@@ -207,7 +213,7 @@ fn print_deps(
     resolved_features: &[(InternedString, FeatureStatus)],
     features: &FeatureMap,
     stdout: &mut dyn Write,
-    ctx: &GlobalContext,
+    gctx: &GlobalContext,
 ) -> Result<(), anyhow::Error> {
     let enabled_by_user = HEADER;
     let enabled = NOP;
@@ -253,7 +259,7 @@ fn print_deps(
         } else {
             (
                 String::new(),
-                format!(" ({})", pretty_source(dependency.source_id(), ctx)),
+                format!(" ({})", pretty_source(dependency.source_id(), gctx)),
             )
         };
 
