@@ -365,6 +365,7 @@ dependencies = [
  "cargo-test-macro",
  "cargo-test-support",
  "cargo-util 0.2.10",
+ "cargo-util-schemas",
  "clap",
  "color-print",
  "crates-io 0.40.0",

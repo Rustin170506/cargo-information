@@ -15,6 +15,7 @@ use cargo::util::command_prelude::root_manifest;
 use cargo::util::network::http::http_handle;
 use cargo::{ops, CargoResult, GlobalContext};
 use cargo_credential::Operation;
+use cargo_util_schemas::core::PartialVersion;
 use crates_io::Registry as CratesIoRegistry;
 use crates_io::User;
 
@@ -64,6 +65,7 @@ pub fn info(
                 current_rustc.minor,
                 current_rustc.patch,
             )
+            .into()
         }
     };
     // Only suggest cargo tree command when the package is not a workspace member.
@@ -143,7 +145,7 @@ fn find_pkgid_in_ws(
 fn find_pkgid_in_summaries(
     summaries: &[IndexSummary],
     spec: &PackageIdSpec,
-    rustc_version: &semver::Version,
+    rustc_version: &PartialVersion,
     source_ids: &RegistrySourceIds,
 ) -> CargoResult<PackageId> {
     let summary = summaries
@@ -154,12 +156,12 @@ fn find_pkgid_in_summaries(
             let s1_matches = s1
                 .as_summary()
                 .rust_version()
-                .map(|v| v.is_compatible_with(&rustc_version.clone().into()))
+                .map(|v| v.is_compatible_with(rustc_version))
                 .unwrap_or_else(|| false);
             let s2_matches = s2
                 .as_summary()
                 .rust_version()
-                .map(|v| v.is_compatible_with(&rustc_version.clone().into()))
+                .map(|v| v.is_compatible_with(rustc_version))
                 .unwrap_or_else(|| false);
             // MSRV compatible version is preferred.
             match (s1_matches, s2_matches) {
@@ -382,9 +384,11 @@ fn validate_locked_and_frozen_options(
 fn try_get_msrv_from_nearest_manifest_or_ws(
     nearest_package: Option<&Package>,
     ws: Option<&Workspace>,
-) -> Option<semver::Version> {
+) -> Option<PartialVersion> {
     // Try to get the MSRV from the nearest manifest.
-    let rust_version = nearest_package.and_then(|p| p.rust_version()?.as_partial().to_version());
+    let rust_version = nearest_package.and_then(|p| p.rust_version().map(|v| v.as_partial()));
     // If the nearest manifest does not have a specific Rust version, try to get it from the workspace.
-    rust_version.or_else(|| ws.and_then(|ws| ws.rust_version()?.as_partial().to_version()))
+    rust_version
+        .or_else(|| ws.and_then(|ws| ws.rust_version().map(|v| v.as_partial())))
+        .cloned()
 }
