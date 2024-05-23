@@ -371,7 +371,7 @@ dependencies = [
  "crates-io 0.40.0",
  "pathdiff",
  "semver",
- "snapbox",
+ "snapbox 0.5.10",
  "trycmd",
 ]
 
@@ -408,7 +408,7 @@ dependencies = [
  "pasetors",
  "serde",
  "serde_json",
- "snapbox",
+ "snapbox 0.5.10",
  "tar",
  "time",
  "toml",
@@ -2851,10 +2851,28 @@ dependencies = [
  "content_inspector",
  "dunce",
  "filetime",
+ "normalize-line-endings",
+ "serde_json",
+ "similar",
+ "snapbox-macros",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "snapbox"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28bef451bfd0a7a395fb3979e130422658926bb2e0d9a168e72aca4c9b5c5738"
+dependencies = [
+ "anstream",
+ "anstyle",
+ "content_inspector",
+ "dunce",
+ "filetime",
  "libc",
  "normalize-line-endings",
  "os_pipe",
- "serde_json",
  "similar",
  "snapbox-macros",
  "tempfile",
@@ -3178,9 +3196,9 @@ dependencies = [
 
 [[package]]
 name = "trycmd"
-version = "0.15.2"
+version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29622709ff54daef580ca6fff0687368527662c9e36fa8907438af35eb334b19"
+checksum = "8186bd128bd25457be9eea6854abe01254849cb68d752f3c760eee8e068382a7"
 dependencies = [
  "automod",
  "glob",
@@ -3189,7 +3207,7 @@ dependencies = [
  "rayon",
  "serde",
  "shlex",
- "snapbox",
+ "snapbox 0.6.0",
  "toml_edit 0.19.15",
 ]
 
