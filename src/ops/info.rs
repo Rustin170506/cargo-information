@@ -13,8 +13,9 @@ use cargo::util::auth::{auth_token, AuthorizationErrorReason};
 use cargo::util::cache_lock::CacheLockMode;
 use cargo::util::command_prelude::root_manifest;
 use cargo::util::network::http::http_handle;
-use cargo::{ops, CargoResult, Config};
+use cargo::{ops, CargoResult, GlobalContext};
 use cargo_credential::Operation;
+use cargo_util_schemas::core::PartialVersion;
 use crates_io::Registry as CratesIoRegistry;
 use crates_io::User;
 
@@ -22,32 +23,32 @@ use super::view::pretty_view;
 
 pub fn info(
     spec: &PackageIdSpec,
-    config: &Config,
+    gctx: &GlobalContext,
     reg_or_index: Option<RegistryOrIndex>,
 ) -> CargoResult<()> {
-    let mut registry = PackageRegistry::new(config)?;
+    let mut registry = PackageRegistry::new(gctx)?;
     // Make sure we get the lock before we download anything.
-    let _lock = config.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
+    let _lock = gctx.acquire_package_cache_lock(CacheLockMode::DownloadExclusive)?;
     registry.lock_patches();
 
     // If we can find it in workspace, use it as a specific version.
-    let nearest_manifest_path = root_manifest(None, config).ok();
+    let nearest_manifest_path = root_manifest(None, gctx).ok();
     let ws = nearest_manifest_path
         .as_ref()
-        .and_then(|root| Workspace::new(root, config).ok());
+        .and_then(|root| Workspace::new(root, gctx).ok());
     let nearest_package = ws.as_ref().and_then(|ws| {
         nearest_manifest_path
             .as_ref()
             .and_then(|path| ws.members().find(|p| p.manifest_path() == path))
     });
     let (mut package_id, is_member) = find_pkgid_in_ws(nearest_package, ws.as_ref(), spec);
-    let (use_package_source_id, source_ids) = get_source_id(config, reg_or_index, package_id)?;
+    let (use_package_source_id, source_ids) = get_source_id(gctx, reg_or_index, package_id)?;
     // If we don't use the package's source, we need to query the package ID from the specified registry.
     if !use_package_source_id {
         package_id = None;
     }
 
-    validate_locked_and_frozen_options(package_id, config)?;
+    validate_locked_and_frozen_options(package_id, gctx)?;
 
     let msrv_from_nearest_manifest_path_or_ws =
         try_get_msrv_from_nearest_manifest_or_ws(nearest_package, ws.as_ref());
@@ -56,7 +57,7 @@ pub fn info(
     let rustc_version = match msrv_from_nearest_manifest_path_or_ws {
         Some(msrv) => msrv,
         None => {
-            let current_rustc = config.load_global_rustc(ws.as_ref())?.version;
+            let current_rustc = gctx.load_global_rustc(ws.as_ref())?.version;
             // Remove any pre-release identifiers for easier comparison.
             // Otherwise, the MSRV check will fail if the current Rust version is a nightly or beta version.
             semver::Version::new(
@@ -64,6 +65,7 @@ pub fn info(
                 current_rustc.minor,
                 current_rustc.patch,
             )
+            .into()
         }
     };
     // Only suggest cargo tree command when the package is not a workspace member.
@@ -78,13 +80,13 @@ pub fn info(
 
     let package = registry.get(&[package_id])?;
     let package = package.get_one(package_id)?;
-    let owners = try_list_owners(config, source_ids, package_id.name().as_str())?;
+    let owners = try_list_owners(gctx, source_ids, package_id.name().as_str())?;
     pretty_view(
         package,
         &summaries,
         &owners,
         suggest_cargo_tree_command,
-        config,
+        gctx,
     )?;
 
     Ok(())
@@ -143,7 +145,7 @@ fn find_pkgid_in_ws(
 fn find_pkgid_in_summaries(
     summaries: &[IndexSummary],
     spec: &PackageIdSpec,
-    rustc_version: &semver::Version,
+    rustc_version: &PartialVersion,
     source_ids: &RegistrySourceIds,
 ) -> CargoResult<PackageId> {
     let summary = summaries
@@ -154,12 +156,12 @@ fn find_pkgid_in_summaries(
             let s1_matches = s1
                 .as_summary()
                 .rust_version()
-                .map(|v| v.to_caret_req().matches(rustc_version))
+                .map(|v| v.is_compatible_with(rustc_version))
                 .unwrap_or_else(|| false);
             let s2_matches = s2
                 .as_summary()
                 .rust_version()
-                .map(|v| v.to_caret_req().matches(rustc_version))
+                .map(|v| v.is_compatible_with(rustc_version))
                 .unwrap_or_else(|| false);
             // MSRV compatible version is preferred.
             match (s1_matches, s2_matches) {
@@ -203,7 +205,7 @@ fn query_summaries(
 
 // Try to list the login and name of all owners of a crate.
 fn try_list_owners(
-    config: &Config,
+    gctx: &GlobalContext,
     source_ids: RegistrySourceIds,
     package_name: &str,
 ) -> CargoResult<Option<Vec<String>>> {
@@ -211,7 +213,7 @@ fn try_list_owners(
     if !source_ids.original.is_remote_registry() {
         return Ok(None);
     }
-    let registry = api_registry(config, source_ids)?;
+    let registry = api_registry(gctx, source_ids)?;
     match registry {
         Some(mut registry) => {
             let owners = registry.list_owners(package_name)?;
@@ -248,26 +250,26 @@ struct RegistrySourceIds {
 }
 
 fn get_source_id(
-    config: &Config,
+    gctx: &GlobalContext,
     reg_or_index: Option<RegistryOrIndex>,
     package_id: Option<PackageId>,
 ) -> CargoResult<(bool, RegistrySourceIds)> {
     let (use_package_source_id, sid) = match (&reg_or_index, package_id) {
         (None, Some(package_id)) => (true, package_id.source_id()),
-        (None, None) => (false, SourceId::crates_io(config)?),
+        (None, None) => (false, SourceId::crates_io(gctx)?),
         (Some(RegistryOrIndex::Index(url)), None) => (false, SourceId::for_registry(url)?),
-        (Some(RegistryOrIndex::Registry(r)), None) => (false, SourceId::alt_registry(config, r)?),
+        (Some(RegistryOrIndex::Registry(r)), None) => (false, SourceId::alt_registry(gctx, r)?),
         (Some(reg_or_index), Some(package_id)) => {
             let sid = match reg_or_index {
                 RegistryOrIndex::Index(url) => SourceId::for_registry(url)?,
-                RegistryOrIndex::Registry(r) => SourceId::alt_registry(config, r)?,
+                RegistryOrIndex::Registry(r) => SourceId::alt_registry(gctx, r)?,
             };
             let package_source_id = package_id.source_id();
             // Same registry, use the package's source.
             if sid == package_source_id {
                 (true, sid)
             } else {
-                let pkg_source_replacement_sid = SourceConfigMap::new(config)?
+                let pkg_source_replacement_sid = SourceConfigMap::new(gctx)?
                     .load(package_source_id, &HashSet::new())?
                     .replaced_source_id();
                 // Use the package's source if the specified registry is a replacement for the package's source.
@@ -280,10 +282,10 @@ fn get_source_id(
         }
     };
     // Load source replacements that are built-in to Cargo.
-    let builtin_replacement_sid = SourceConfigMap::empty(config)?
+    let builtin_replacement_sid = SourceConfigMap::empty(gctx)?
         .load(sid, &HashSet::new())?
         .replaced_source_id();
-    let replacement_sid = SourceConfigMap::new(config)?
+    let replacement_sid = SourceConfigMap::new(gctx)?
         .load(sid, &HashSet::new())?
         .replaced_source_id();
     // Check if the user has configured source-replacement for the registry we are querying.
@@ -308,11 +310,11 @@ fn get_source_id(
 // Try to get the crates.io registry which is used to access the registry API.
 // If the user is not logged in, the function will return None.
 fn api_registry(
-    config: &Config,
+    gctx: &GlobalContext,
     source_ids: RegistrySourceIds,
 ) -> CargoResult<Option<CratesIoRegistry>> {
     let cfg = {
-        let mut src = RegistrySource::remote(source_ids.replacement, &HashSet::new(), config)?;
+        let mut src = RegistrySource::remote(source_ids.replacement, &HashSet::new(), gctx)?;
         let cfg = loop {
             match src.config()? {
                 Poll::Pending => src
@@ -330,7 +332,7 @@ fn api_registry(
         None => return Ok(None),
     };
     let token = match auth_token(
-        config,
+        gctx,
         &source_ids.original,
         None,
         Operation::Read,
@@ -352,7 +354,7 @@ fn api_registry(
         }
     };
 
-    let handle = http_handle(config)?;
+    let handle = http_handle(gctx)?;
     Ok(Some(CratesIoRegistry::new_handle(
         api_host,
         token,
@@ -363,16 +365,16 @@ fn api_registry(
 
 fn validate_locked_and_frozen_options(
     package_id: Option<PackageId>,
-    config: &Config,
+    gctx: &GlobalContext,
 ) -> Result<(), anyhow::Error> {
     let from_workspace = package_id.is_some();
     // Only in workspace, we can use --frozen or --locked.
     if !from_workspace {
-        if config.locked() {
+        if gctx.locked() {
             anyhow::bail!("the option `--locked` can only be used within a workspace");
         }
 
-        if config.frozen() {
+        if gctx.frozen() {
             anyhow::bail!("the option `--frozen` can only be used within a workspace");
         }
     }
@@ -382,9 +384,11 @@ fn validate_locked_and_frozen_options(
 fn try_get_msrv_from_nearest_manifest_or_ws(
     nearest_package: Option<&Package>,
     ws: Option<&Workspace>,
-) -> Option<semver::Version> {
+) -> Option<PartialVersion> {
     // Try to get the MSRV from the nearest manifest.
-    let rust_version = nearest_package.and_then(|p| p.rust_version()?.to_version());
+    let rust_version = nearest_package.and_then(|p| p.rust_version().map(|v| v.as_partial()));
     // If the nearest manifest does not have a specific Rust version, try to get it from the workspace.
-    rust_version.or_else(|| ws.and_then(|ws| ws.rust_version()?.to_version()))
+    rust_version
+        .or_else(|| ws.and_then(|ws| ws.rust_version().map(|v| v.as_partial())))
+        .cloned()
 }

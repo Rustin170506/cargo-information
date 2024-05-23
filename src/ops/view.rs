@@ -7,7 +7,7 @@ use cargo::{
     },
     sources::IndexSummary,
     util::interning::InternedString,
-    CargoResult, Config,
+    CargoResult, GlobalContext,
 };
 
 use super::style::{ERROR, HEADER, LITERAL, NOP, NOTE, WARN};
@@ -18,7 +18,7 @@ pub(super) fn pretty_view(
     summaries: &[IndexSummary],
     owners: &Option<Vec<String>>,
     suggest_cargo_tree_command: bool,
-    config: &Config,
+    gctx: &GlobalContext,
 ) -> CargoResult<()> {
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
@@ -28,7 +28,7 @@ pub(super) fn pretty_view(
     let warn = WARN;
     let note = NOTE;
 
-    let mut shell = config.shell();
+    let mut shell = gctx.shell();
     let verbosity = shell.verbosity();
     let stdout = shell.out();
     write!(stdout, "{header}{}{header:#}", package_id.name())?;
@@ -56,7 +56,7 @@ pub(super) fn pretty_view(
                 stdout,
                 " {warn}(latest {} {warn:#}{note}from {}{note:#}{warn}){warn:#}",
                 latest.as_summary().version(),
-                pretty_source(summary.source_id(), config)
+                pretty_source(summary.source_id(), gctx)
             )?;
         }
         (Some(latest), true) if latest.as_summary().version() != package_id.version() => {
@@ -70,7 +70,7 @@ pub(super) fn pretty_view(
             write!(
                 stdout,
                 " {note}(from {}){note:#}",
-                pretty_source(summary.source_id(), config)
+                pretty_source(summary.source_id(), gctx)
             )?;
         }
         (_, true) => {}
@@ -136,7 +136,7 @@ pub(super) fn pretty_view(
         summary.features(),
         verbosity,
         stdout,
-        config,
+        gctx,
     )?;
 
     if let Some(owners) = owners {
@@ -150,10 +150,10 @@ pub(super) fn pretty_view(
     Ok(())
 }
 
-fn pretty_source(source: SourceId, config: &Config) -> String {
+fn pretty_source(source: SourceId, ctx: &GlobalContext) -> String {
     if let Some(relpath) = source
         .local_path()
-        .and_then(|path| pathdiff::diff_paths(path, config.cwd()))
+        .and_then(|path| pathdiff::diff_paths(path, ctx.cwd()))
     {
         let path = std::path::Path::new(".").join(relpath);
         path.display().to_string()
@@ -168,7 +168,7 @@ fn pretty_deps(
     features: &FeatureMap,
     verbosity: Verbosity,
     stdout: &mut dyn Write,
-    config: &Config,
+    gctx: &GlobalContext,
 ) -> CargoResult<()> {
     match verbosity {
         Verbosity::Quiet | Verbosity::Normal => {
@@ -186,7 +186,7 @@ fn pretty_deps(
         .collect::<Vec<_>>();
     if !dependencies.is_empty() {
         writeln!(stdout, "{header}dependencies:{header:#}")?;
-        print_deps(dependencies, resolved_features, features, stdout, config)?;
+        print_deps(dependencies, resolved_features, features, stdout, gctx)?;
     }
 
     let build_dependencies = package
@@ -201,7 +201,7 @@ fn pretty_deps(
             resolved_features,
             features,
             stdout,
-            config,
+            gctx,
         )?;
     }
 
@@ -213,7 +213,7 @@ fn print_deps(
     resolved_features: &[(InternedString, FeatureStatus)],
     features: &FeatureMap,
     stdout: &mut dyn Write,
-    config: &Config,
+    gctx: &GlobalContext,
 ) -> Result<(), anyhow::Error> {
     let enabled_by_user = HEADER;
     let enabled = NOP;
@@ -259,7 +259,7 @@ fn print_deps(
         } else {
             (
                 String::new(),
-                format!(" ({})", pretty_source(dependency.source_id(), config)),
+                format!(" ({})", pretty_source(dependency.source_id(), gctx)),
             )
         };
 
@@ -289,7 +289,7 @@ fn pretty_req(req: &cargo::util::OptVersionReq) -> String {
         cargo::util::OptVersionReq::Any => false,
         cargo::util::OptVersionReq::Req(req)
         | cargo::util::OptVersionReq::Locked(_, req)
-        | cargo::util::OptVersionReq::UpdatePrecise(_, req) => {
+        | cargo::util::OptVersionReq::Precise(_, req) => {
             req.comparators.len() == 1 && rendered.starts_with('^')
         }
     };
