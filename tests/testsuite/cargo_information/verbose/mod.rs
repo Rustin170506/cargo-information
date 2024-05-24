@@ -47,6 +47,6 @@ fn case() {
         .arg("--registry=dummy-registry")
         .assert()
         .success()
-        .stdout_matches(file!["stdout.term.svg"])
-        .stderr_matches(file!["stderr.term.svg"]);
+        .stdout_eq_(file!["stdout.term.svg"])
+        .stderr_eq_(file!["stderr.term.svg"]);
 }
