@@ -38,36 +38,36 @@ fn case() {
         .arg("--registry=dummy-registry")
         .current_dir(ws_directory)
         .assert()
-        .stdout_matches(file!["ws.stdout.log"])
-        .stderr_matches(file!["ws.stderr.log"]);
+        .stdout_eq_(file!["ws.stdout.log"])
+        .stderr_eq_(file!["ws.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
         .current_dir(transitive1_directory)
         .assert()
-        .stdout_matches(file!["transitive1.stdout.log"])
-        .stderr_matches(file!["transitive1.stderr.log"]);
+        .stdout_eq_(file!["transitive1.stdout.log"])
+        .stderr_eq_(file!["transitive1.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
         .current_dir(transitive2_directory)
         .assert()
-        .stdout_matches(file!["transitive2.stdout.log"])
-        .stderr_matches(file!["transitive2.stderr.log"]);
+        .stdout_eq_(file!["transitive2.stdout.log"])
+        .stderr_eq_(file!["transitive2.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
         .current_dir(direct1_directory)
         .assert()
-        .stdout_matches(file!["direct1.stdout.log"])
-        .stderr_matches(file!["direct1.stderr.log"]);
+        .stdout_eq_(file!["direct1.stdout.log"])
+        .stderr_eq_(file!["direct1.stderr.log"]);
     cargo_info()
         .arg("my-package")
         .arg("--registry=dummy-registry")
         .current_dir(direct2_directory)
         .assert()
-        .stdout_matches(file!["direct2.stdout.log"])
-        .stderr_matches(file!["direct2.stderr.log"]);
+        .stdout_eq_(file!["direct2.stdout.log"])
+        .stderr_eq_(file!["direct2.stderr.log"]);
 
     assert_ui().subset_matches(current_dir!().join("out"), &project_root);
 }

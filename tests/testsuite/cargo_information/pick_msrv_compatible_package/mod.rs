@@ -18,6 +18,6 @@ fn case() {
         .arg("--registry=dummy-registry")
         .assert()
         .success()
-        .stdout_matches(file!["stdout.log"])
-        .stderr_matches(file!["stderr.log"]);
+        .stdout_eq_(file!["stdout.log"])
+        .stderr_eq_(file!["stderr.log"]);
 }
