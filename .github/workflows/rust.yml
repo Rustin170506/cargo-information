@@ -58,19 +58,19 @@ jobs:
             rust: beta
           - name: Linux x86_64 nightly
             os: ubuntu-latest
-            rust: nightly
+            rust: nightly-2024-05-01
           - name: macOS x86_64 stable
             os: macos-latest
             rust: stable
           - name: macOS x86_64 nightly
             os: macos-latest
-            rust: nightly
+            rust: nightly-2024-05-01
           - name: Windows x86_64 MSVC stable
             os: windows-latest
             rust: stable-msvc
           - name: Windows x86_64 gnu nightly # runs out of space while trying to link the test suite
             os: windows-latest
-            rust: nightly-gnu
+            rust: nightly-2024-05-01-gnu
     name: Tests ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
