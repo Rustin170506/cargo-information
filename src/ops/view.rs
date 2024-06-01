@@ -23,6 +23,7 @@ pub(super) fn pretty_view(
     let summary = package.manifest().summary();
     let package_id = summary.package_id();
     let metadata = package.manifest().metadata();
+    let is_package_from_crates_io = summary.source_id().is_crates_io();
     let header = HEADER;
     let error = ERROR;
     let warn = WARN;
@@ -30,11 +31,25 @@ pub(super) fn pretty_view(
 
     let mut shell = gctx.shell();
     let verbosity = shell.verbosity();
-    let stdout = shell.out();
-    write!(stdout, "{header}{}{header:#}", package_id.name())?;
+    write!(shell.out(), "{header}{}{header:#}", package_id.name())?;
     if !metadata.keywords.is_empty() {
-        write!(stdout, " {note}#{}{note:#}", metadata.keywords.join(" #"))?;
+        let message = if is_package_from_crates_io {
+            metadata
+                .keywords
+                .iter()
+                .map(|keyword| {
+                    let link = shell.out_hyperlink(format!("https://crates.io/keywords/{keyword}"));
+                    format!("{link}#{keyword}{link:#}")
+                })
+                .collect::<Vec<_>>()
+                .join(" ")
+        } else {
+            format!("#{}", metadata.keywords.join(" #"))
+        };
+        write!(shell.out(), " {note}{message}{note:#}")?;
     }
+
+    let stdout = shell.out();
     writeln!(stdout)?;
     if let Some(ref description) = metadata.description {
         writeln!(stdout, "{}", description.trim_end())?;
@@ -49,7 +64,7 @@ pub(super) fn pretty_view(
     // 2. The package source is not crates.io.
     match (
         summaries.iter().max_by_key(|s| s.as_summary().version()),
-        summary.source_id().is_crates_io(),
+        is_package_from_crates_io,
     ) {
         (Some(latest), false) if latest.as_summary().version() != package_id.version() => {
             write!(
@@ -95,7 +110,7 @@ pub(super) fn pretty_view(
             .unwrap_or_else(|| format!("{warn}unknown{warn:#}"))
     )?;
     if let Some(ref link) = metadata.documentation.clone().or_else(|| {
-        summary.source_id().is_crates_io().then(|| {
+        is_package_from_crates_io.then(|| {
             format!(
                 "https://docs.rs/{name}/{version}",
                 name = package_id.name(),
@@ -112,7 +127,7 @@ pub(super) fn pretty_view(
         writeln!(stdout, "{header}repository:{header:#} {link}")?;
     }
     // Only print the crates.io link if the package is from crates.io.
-    if summary.source_id().is_crates_io() {
+    if is_package_from_crates_io {
         writeln!(
             stdout,
             "{header}crates.io:{header:#} https://crates.io/crates/{}/{}",
