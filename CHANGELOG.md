@@ -4,6 +4,15 @@
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- Display the keywords of the crate as clickable links in the terminal.
+
+### Changed
+
+- Dependency updates and patches, including updates to rust crate anstyle(1.0.7), color-print(0.3.6), cargo(0.79.0),
+  anyhow(1.0.86), semver(1.0.23), snapbox(0.5.14), trycmd(0.15.3),  and cargo-credential(0.4.4).
+
 ## [0.6.0] - 2024-04-17
 
 ### Added
