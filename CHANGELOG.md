@@ -4,6 +4,8 @@
 
 ## [Unreleased] - ReleaseDate
 
+## [0.7.0] - 2024-06-09
+
 ### Added
 
 - Display the keywords of the crate as clickable links in the terminal.
