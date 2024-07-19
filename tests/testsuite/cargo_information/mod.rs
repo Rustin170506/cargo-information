@@ -23,6 +23,7 @@ mod with_frozen_outside_ws;
 mod with_frozen_within_ws;
 mod with_locked_outside_ws;
 mod with_locked_within_ws;
+mod with_locked_within_ws_and_pick_the_package;
 mod with_offline;
 mod with_quiet;
 mod within_ws;
