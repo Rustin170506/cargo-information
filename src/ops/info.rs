@@ -36,6 +36,7 @@ pub fn info(
     let ws = nearest_manifest_path
         .as_ref()
         .and_then(|root| Workspace::new(root, gctx).ok());
+    validate_locked_and_frozen_options(ws.is_some(), gctx)?;
     let nearest_package = ws.as_ref().and_then(|ws| {
         nearest_manifest_path
             .as_ref()
@@ -47,8 +48,6 @@ pub fn info(
     if !use_package_source_id {
         package_id = None;
     }
-
-    validate_locked_and_frozen_options(package_id, gctx)?;
 
     let msrv_from_nearest_manifest_path_or_ws =
         try_get_msrv_from_nearest_manifest_or_ws(nearest_package, ws.as_ref());
@@ -364,12 +363,11 @@ fn api_registry(
 }
 
 fn validate_locked_and_frozen_options(
-    package_id: Option<PackageId>,
+    in_workspace: bool,
     gctx: &GlobalContext,
 ) -> Result<(), anyhow::Error> {
-    let from_workspace = package_id.is_some();
     // Only in workspace, we can use --frozen or --locked.
-    if !from_workspace {
+    if !in_workspace {
         if gctx.locked() {
             anyhow::bail!("the option `--locked` can only be used within a workspace");
         }

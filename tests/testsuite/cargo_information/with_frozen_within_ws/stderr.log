@@ -1,1 +1,1 @@
-error: the option `--frozen` can only be used within a workspace
+error: could not find `unknown` in registry `[ROOTURL]/registry`
