@@ -1,5 +1,7 @@
 # Cargo Information
 
+> **Warning:** ⚠️ This project has been archived and merged into the [cargo repository](https://github.com/rust-lang/cargo/pull/14141).
+
 This project is a response to [issue #948](https://github.com/rust-lang/cargo/issues/948) on the Rust Lang Cargo repository.
 
 [![asciicast](https://asciinema.org/a/624572.svg)](https://asciinema.org/a/624572)
