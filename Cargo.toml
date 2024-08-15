@@ -12,7 +12,7 @@ anstyle = "1.0.6"
 anyhow = "1.0.82"
 cargo = { version = "0.79.0" }
 cargo-credential = { version = "0.4.4" }
-cargo-util-schemas = "0.3.0"
+cargo-util-schemas = "0.4.0"
 cargo-util = "0.2.10"
 clap = "4.5.4"
 color-print = "0.3.5"
