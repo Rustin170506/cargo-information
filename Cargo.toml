@@ -24,7 +24,7 @@ semver = "1.0.22"
 [dev-dependencies]
 cargo-test-macro = { git = "https://github.com/rust-lang/cargo.git" }
 cargo-test-support = { git = "https://github.com/rust-lang/cargo.git" }
-snapbox = { version = "0.5.14", features = ["diff", "path", "term-svg"] }
+snapbox = { version = "0.6.0", features = ["diff", "path", "term-svg"] }
 trycmd = "0.15.1"
 
 [[bin]]
